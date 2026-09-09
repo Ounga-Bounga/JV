@@ -102,8 +102,8 @@ html, body {
   text-shadow: 0 2px 0 #000;
 }
 
-.fighter-portrait-wrap { width: 130px; height: 168px; margin: 0 auto; }
-.fighter-portrait-wrap.small { width: 110px; height: 142px; }
+.portrait-wrap { width: 130px; height: 168px; margin: 0 auto; }
+.portrait-wrap.small { width: 110px; height: 142px; }
 .fighter-svg { width: 100%; height: 100%; overflow: visible; }
 
 .stat-list {
@@ -256,26 +256,26 @@ html, body {
 }
 .status-badge[hidden] { display: none; }
 
-.fighter-portrait-wrap { transition: transform 0.15s ease; }
-.player-slot .fighter-portrait-wrap { width: 160px; height: 206px; }
-.enemy-slot .fighter-portrait-wrap { width: 160px; height: 206px; transform: scaleX(-1); }
+.portrait-wrap { transition: transform 0.15s ease; }
+.player-slot .portrait-wrap { width: 160px; height: 206px; }
+.enemy-slot .portrait-wrap { width: 160px; height: 206px; transform: scaleX(-1); }
 
 .part-shield-arm, .part-weapon-arm { transition: transform 0.25s ease; transform-origin: 100px 140px; }
-.fighter-portrait-wrap.pose-tirer .part-weapon-arm, .fighter-portrait-wrap.pose-cac .part-weapon-arm { transform: translateX(10px) rotate(-6deg); }
-.fighter-portrait-wrap.pose-tirer .part-string { animation: bowstring 0.35s ease; }
-.fighter-portrait-wrap.pose-parer .part-shield-arm { transform: translate(-14px, -18px) rotate(-20deg); }
-.fighter-portrait-wrap.pose-recharger .part-weapon-arm { transform: translateY(4px) rotate(6deg); }
-.fighter-portrait-wrap.pose-balayette .part-shield-arm { transform: translate(-10px, 16px) rotate(30deg); }
-.fighter-portrait-wrap.pose-hit { animation: hitshake 0.4s ease; }
-.fighter-portrait-wrap.pose-victory { animation: victorybounce 0.6s ease infinite alternate; }
-.fighter-portrait-wrap.pose-defeat { transform: rotate(88deg) translateY(24px); opacity: 0.7; }
-.fighter-portrait-wrap.pose-stunned { transform: rotate(24deg) translateY(6px); opacity: 0.85; }
-.enemy-slot .fighter-portrait-wrap.pose-defeat { transform: scaleX(-1) rotate(88deg) translateY(24px); }
-.enemy-slot .fighter-portrait-wrap.pose-stunned { transform: scaleX(-1) rotate(24deg) translateY(6px); }
+.portrait-wrap.pose-tirer .part-weapon-arm, .portrait-wrap.pose-cac .part-weapon-arm { transform: translateX(10px) rotate(-6deg); }
+.portrait-wrap.pose-tirer .part-string { animation: bowstring 0.35s ease; }
+.portrait-wrap.pose-parer .part-shield-arm { transform: translate(-14px, -18px) rotate(-20deg); }
+.portrait-wrap.pose-recharger .part-weapon-arm { transform: translateY(4px) rotate(6deg); }
+.portrait-wrap.pose-balayette .part-shield-arm { transform: translate(-10px, 16px) rotate(30deg); }
+.portrait-wrap.pose-hit { animation: hitshake 0.4s ease; }
+.portrait-wrap.pose-victory { animation: victorybounce 0.6s ease infinite alternate; }
+.portrait-wrap.pose-defeat { transform: rotate(88deg) translateY(24px); opacity: 0.7; }
+.portrait-wrap.pose-stunned { transform: rotate(24deg) translateY(6px); opacity: 0.85; }
+.enemy-slot .portrait-wrap.pose-defeat { transform: scaleX(-1) rotate(88deg) translateY(24px); }
+.enemy-slot .portrait-wrap.pose-stunned { transform: scaleX(-1) rotate(24deg) translateY(6px); }
 
 @keyframes bowstring { 0% { transform: scaleX(1); } 50% { transform: scaleX(0.4); } 100% { transform: scaleX(1); } }
 @keyframes hitshake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-.enemy-slot .fighter-portrait-wrap.pose-hit { animation: hitshakeEnemy 0.4s ease; }
+.enemy-slot .portrait-wrap.pose-hit { animation: hitshakeEnemy 0.4s ease; }
 @keyframes hitshakeEnemy { 0%,100% { transform: scaleX(-1) translateX(0); } 25% { transform: scaleX(-1) translateX(-8px); } 75% { transform: scaleX(-1) translateX(8px); } }
 @keyframes victorybounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
 
@@ -362,6 +362,6 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flame, .fighter-portrait-wrap.pose-victory { animation: none; }
+  .flame, .portrait-wrap.pose-victory { animation: none; }
   .clash-flyer, .clash-burst { display: none; }
 }
