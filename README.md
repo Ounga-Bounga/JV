@@ -18,16 +18,29 @@ Chaque round, l'adversaire choisit son action **en secret**. Vous avez ensuite
 quelques secondes pour choisir la vôtre — sans savoir ce qu'il a décidé — en
 voyant les probabilités exactes de chaque option calculées à partir de vos
 stats (survolez les boutons et les stats pour le détail). Les deux actions se
-révèlent ensuite en même temps et se résolvent.
+révèlent ensuite en même temps, avec une petite animation de clash au centre,
+puis se résolvent selon la distance qui vous sépare sur le plateau.
 
-Trois actions, qui se contrent en triangle façon pierre-feuille-ciseaux :
+Un plateau de 7 cases sépare les duellistes. À distance, un premier triangle :
 
-- **🏹 Tirer** (coûte 1 Charge) bat **🔄 Recharger** : un adversaire pris en
-  train de recharger est touché à coup sûr, avec des dégâts bonus.
-- **🛡️ Parer** (gratuit) bat **🏹 Tirer** : une parade a de bonnes chances de
-  bloquer totalement un tir.
-- **🔄 Recharger** (gratuit) bat **🛡️ Parer** : recharger contre une parade est
-  sûr et fait gagner de la Charge pendant que l'adversaire perd son tour.
+- **🏹 Tirer** (coûte 1 Charge) bat **🔄 Recharger** / **💨 Bondir** / **🔀
+  Échanger** : toute action engagée expose à un tir garanti, dégâts bonus.
+- **🛡️ Parer** (gratuit) bat **🏹 Tirer** (et le Frappe, et la Balayette) :
+  bonnes chances de tout bloquer.
+- **🔄 Recharger** (gratuit) bat **🛡️ Parer** : fait gagner de la Charge
+  pendant que l'adversaire perd son tour. C'est la seule façon de Tirer.
+
+Au contact (distance 1), un second triangle s'ouvre :
+
+- **⚔️ Frapper** bat **🏹 Tirer** à bout portant (le coup part avant le tir).
+- **🏹 Tirer** bat **🦵 Balayette** (se pencher pour faucher expose au tir).
+- **🦵 Balayette** bat **⚔️ Frapper** (aucun dégât, mais l'adversaire passe le
+  round suivant à terre). Elle échoue si l'adversaire recule ou bouge.
+
+**⬅️ Reculer** esquive automatiquement un Frappe adverse. **🔀 Échanger**
+permet de changer de côté avec l'adversaire (utile près d'un mur, qui bloque
+Reculer). **💨 Bondir** rapproche de 2 cases d'un coup, au même risque que
+Recharger ou Échanger face à un Tir.
 
 Les stats (Force, Précision, Vivacité, Vigueur) sont fixes pour cette V1 et
 pèsent directement sur les formules (dégâts, chance de toucher, chance de
@@ -47,7 +60,7 @@ parer, chance de recharge critique) — visibles dans les tooltips.
 
 - Progression (or gagné, boutique d'équipement, plusieurs adversaires).
 - IA plus lisible/maline (lecture de patterns, bluff).
-- Plus d'actions et de profondeur stratégique autour de la Charge.
+- Plus de relief visuel sur le plateau (obstacles, zones).
 
 ## Build de production
 

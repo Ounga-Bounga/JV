@@ -44,6 +44,16 @@
               <span class="rule-arrow">bat</span>
               <div class="rule-chip has-tooltip" data-key="TIRER">🏹 Tirer</div>
             </div>
+            <p class="rules-hint">Un plateau de 7 cases sépare les duellistes : au contact (distance 1), un second triangle s'ouvre.</p>
+            <div class="rules-triangle">
+              <div class="rule-chip has-tooltip" data-key="CAC">⚔️ Frapper</div>
+              <span class="rule-arrow">bat</span>
+              <div class="rule-chip has-tooltip" data-key="TIRER_CAC">🏹 Tirer</div>
+              <span class="rule-arrow">bat</span>
+              <div class="rule-chip has-tooltip" data-key="BALAYETTE">🦵 Balayette</div>
+              <span class="rule-arrow">bat</span>
+              <div class="rule-chip has-tooltip" data-key="CAC2">⚔️ Frapper</div>
+            </div>
             <p class="rules-hint">Survolez les stats, les actions et ce ⓘ pour voir le détail des calculs.</p>
           </div>
 
@@ -54,52 +64,47 @@
       <!-- ============ COMBAT ============ -->
       <section id="screen-combat" class="screen hidden">
         <div class="stone-bg"></div>
-        <div class="arena">
-          <div class="torch torch-left"><div class="flame"></div></div>
-          <div class="torch torch-right"><div class="flame"></div></div>
-
-          <div class="fighter-slot player-slot">
-            <div class="hud">
-              <div class="hud-top">
-                <span class="hud-name">Vous</span>
-                <span class="hp-text" id="playerHpText"></span>
-              </div>
-              <div class="hp-bar"><div class="hp-fill" id="playerHpFill"></div></div>
+        <div class="duel-stage">
+          <div class="hud-row">
+            <div class="hud-mini side-player">
+              <div class="hud-line1"><span class="hud-name">Vous</span><span class="hp-num" id="playerHpText"></span></div>
+              <div class="hp-bar-mini"><div class="hp-fill-mini" id="playerHpFill"></div></div>
               <div class="charge-row" id="playerChargeRow"></div>
             </div>
-            <div class="fighter-portrait-wrap" id="playerPortrait"></div>
-          </div>
-
-          <div class="clash-center">
-            <div class="enemy-tell" id="enemyTell">L'adversaire a déjà choisi…</div>
-            <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timerFill"></div></div>
-            <div class="combat-log" id="combatLog"></div>
-          </div>
-
-          <div class="fighter-slot enemy-slot">
-            <div class="hud">
-              <div class="hud-top">
-                <span class="hp-text" id="enemyHpText"></span>
-                <span class="hud-name" id="enemyHudName"></span>
-              </div>
-              <div class="hp-bar"><div class="hp-fill enemy" id="enemyHpFill"></div></div>
+            <div class="hud-mini side-enemy">
+              <div class="hud-line1"><span class="hp-num" id="enemyHpText"></span><span class="hud-name has-tooltip" id="enemyHudName"></span></div>
+              <div class="hp-bar-mini"><div class="hp-fill-mini" id="enemyHpFill"></div></div>
               <div class="charge-row" id="enemyChargeRow"></div>
             </div>
-            <div class="fighter-portrait-wrap" id="enemyPortrait"></div>
+          </div>
+
+          <div class="board-wrap">
+            <div class="board" id="board"></div>
+            <div class="distance-readout">Distance : <span id="distanceValue"></span> case(s)</div>
+          </div>
+
+          <div class="arena-figures">
+            <div class="torch torch-left"><div class="flame"></div></div>
+            <div class="fighter-slot player-slot">
+              <div class="status-badge" id="playerStatus" hidden>À terre</div>
+              <div class="portrait-wrap" id="playerPortrait"></div>
+            </div>
+            <div class="clash-center" id="clashCenter">
+              <div class="enemy-tell" id="enemyTell"></div>
+              <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timerFill"></div></div>
+              <div class="combat-log" id="combatLog"></div>
+            </div>
+            <div class="fighter-slot enemy-slot">
+              <div class="status-badge" id="enemyStatus" hidden>À terre</div>
+              <div class="portrait-wrap" id="enemyPortrait"></div>
+            </div>
+            <div class="torch torch-right"><div class="flame"></div></div>
           </div>
         </div>
 
-        <div class="action-bar" id="actionBar">
-          <button class="action-btn has-tooltip" data-action="TIRER">
-            <span class="action-icon">🏹</span><span class="action-label">Tirer</span>
-            <span class="action-cost" id="costTirer"></span>
-          </button>
-          <button class="action-btn has-tooltip" data-action="PARER">
-            <span class="action-icon">🛡️</span><span class="action-label">Parer</span>
-          </button>
-          <button class="action-btn has-tooltip" data-action="RECHARGER">
-            <span class="action-icon">🔄</span><span class="action-label">Recharger</span>
-          </button>
+        <div class="action-groups">
+          <div class="action-row move-row" id="moveRow"></div>
+          <div class="action-row combat-row" id="combatRow"></div>
         </div>
       </section>
 

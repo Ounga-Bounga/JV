@@ -10,12 +10,16 @@ export const STAT_INFO = {
   FOR: {
     label: 'Force',
     icon: '💪',
-    describe: (v) => `Augmente les dégâts d'un Tir réussi (actuellement ${6 + Math.round(v * 1.4)}–${6 + Math.round(v * 1.4) + 8} dégâts).`,
+    describe: (v) => {
+      const shot = 6 + Math.round(v * 1.4);
+      const melee = 9 + Math.round(v * 1.7);
+      return `Augmente les dégâts d'un Tir (${shot}–${shot + 8}) et d'un Coup au corps-à-corps (${melee}–${melee + 10}).`;
+    },
   },
   PRE: {
     label: 'Précision',
     icon: '🎯',
-    describe: () => `Augmente la chance de toucher au Tir et la chance de réussir une Parade (+3% par point d'écart).`,
+    describe: () => `Augmente la chance de toucher au Tir et au corps-à-corps, et la chance de réussir une Parade (+3% par point d'écart).`,
   },
   VIV: {
     label: 'Vivacité',
