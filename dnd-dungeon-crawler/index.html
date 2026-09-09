@@ -142,6 +142,13 @@ button{font-family:inherit;cursor:pointer;}
 .node-btn.current{border-color:var(--accent-bright);box-shadow:0 0 0 5px rgba(217,154,63,0.28);}
 .node-btn.locked{opacity:0.3;cursor:default;}
 .node-btn.boss{width:74px;height:74px;background:linear-gradient(180deg,#3a1a20,#221114);border-color:var(--bad);}
+.party-token{position:absolute;display:grid;grid-template-columns:repeat(2,1fr);gap:2px;background:var(--surface-2);border:2px solid var(--accent);border-radius:8px;padding:4px;box-shadow:var(--shadow-md);font-size:13px;z-index:5;pointer-events:none;transform:translate(-50%,-100%);}
+.party-token span{width:15px;height:15px;display:flex;align-items:center;justify-content:center;}
+.token-idle{animation:tokenBob 1.8s ease-in-out infinite;}
+.token-moving{animation:tokenWalk var(--dur,0.5s) ease forwards;}
+@keyframes tokenBob{0%,100%{transform:translate(-50%,-100%) translateY(0);}50%{transform:translate(-50%,-100%) translateY(-4px);}}
+@keyframes tokenWalk{from{transform:translate(-50%,-100%) translate(0,0);}to{transform:translate(-50%,-100%) translate(var(--dx),var(--dy));}}
+@media (prefers-reduced-motion:reduce){.token-idle,.token-moving{animation:none;}}
 .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px;font-size:12px;color:var(--ink-dim);}
 .legend span{display:inline-flex;align-items:center;gap:6px;}
 
@@ -152,8 +159,6 @@ button{font-family:inherit;cursor:pointer;}
 .unit-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:8px;display:flex;gap:10px;align-items:center;transition:border-color .15s ease, box-shadow .15s ease;}
 .unit-card.acting{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
 .unit-card.dead{opacity:0.38;filter:grayscale(0.6);}
-.unit-card.selectable{cursor:pointer;border-color:var(--role-ranged);}
-.unit-card.selectable:hover{background:var(--surface-2);}
 .uc-icon{font-size:24px;width:40px;height:40px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .uc-body{flex:1;min-width:0;}
 .uc-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600;}
@@ -168,13 +173,6 @@ button{font-family:inherit;cursor:pointer;}
 .action-panel{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;}
 .ap-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .ability-row{display:flex;gap:8px;flex-wrap:wrap;}
-.ability-btn{text-align:left;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;min-width:150px;flex:1;}
-.ability-btn .ab-t{display:flex;justify-content:space-between;font-weight:700;font-size:13px;}
-.ability-btn .ab-t .cost{font-family:var(--font-mono);color:var(--role-caster);font-weight:400;font-size:11px;}
-.ability-btn .ab-d{font-size:11.5px;color:var(--ink-dim);margin-top:3px;}
-.target-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
-.target-btn{background:var(--surface-2);border:1px solid var(--border-strong);border-radius:7px;padding:7px 12px;font-size:12.5px;}
-.target-btn:hover{border-color:var(--accent);}
 .log-panel{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;max-height:210px;overflow-y:auto;font-size:12.5px;display:flex;flex-direction:column-reverse;}
 .log-line{padding:3px 0;border-bottom:1px solid rgba(236,224,196,0.05);color:var(--ink-dim);}
 .log-line b{color:var(--ink);}
@@ -664,7 +662,7 @@ function clearSave(){ try{ localStorage.removeItem('crypte13_save'); }catch(e){}
 function newState(){
   return {
     view:'TITLE', roster:{}, inventory:[], gold:40, consumables:{healPotion:1,elixir:0},
-    floor:0, mapNodes:null, currentNodeId:null, runBuffs:[], meta:loadMeta(),
+    floor:0, mapNodes:null, currentNodeId:null, mapTravel:null, runBuffs:[], meta:loadMeta(),
     ngPlus:loadMeta().ngPlus, combat:null, screen:{}, buildPicks:[], forcedEncounter:null, pendingAmbush:false
   };
 }
@@ -772,7 +770,7 @@ function startCombat(node){
       focus:Math.min(st.focus,1), focusMax:st.focus, crit:st.crit, healPct:st.healPct, level:u.level,
       tempEffects:[], usedFeatFlags:{}};
   });
-  state.combat = {enemies:enemies, party:party, queue:[], qIndex:0, round:0, log:[], ended:false, result:null, node:node, awaitingAbility:null, awaitingTarget:null};
+  state.combat = {enemies:enemies, party:party, queue:[], qIndex:0, round:0, log:[], ended:false, result:null, node:node, autoPlay:true, speed:750, _timer:null};
   logMsg("Le combat commence : "+enemies.map(function(e){return e.name;}).join(', ')+" !",'info');
   var beastUnits = party.filter(function(p){ return hasFeat(state.roster[p.classId],'beastCompanion'); });
   beastUnits.forEach(function(p){
@@ -780,7 +778,7 @@ function startCombat(node){
     if(alive.length){ var target = alive.reduce(function(a,b){return b.hp<a.hp?b:a;}); var dmg=Math.max(1,Math.round(p.atk*0.5)); target.hp=Math.max(0,target.hp-dmg); logMsg(p.name+" (compagnon animal) mord "+target.name+" pour "+dmg+" dégâts.",'hit'); }
   });
   newRound();
-  runQueue();
+  tickCombat();
 }
 function logMsg(text, cls){ state.combat.log.push({text:text, cls:cls||''}); if(state.combat.log.length>80) state.combat.log.shift(); }
 function newRound(){
@@ -1000,87 +998,134 @@ function advanceQueueIndex(){
     newRound();
   }
 }
-function runQueue(){
+function payFocus(actor, ability){
+  var owner = classFeatOwner(actor.uid);
+  var free = owner && hasFeat(owner,'metamagic') && Math.random()<0.15;
+  actor.focus -= free?0:ability.cost;
+  if(free) logMsg(actor.name+" lance le sort gratuitement (Métamagie) !", 'info');
+}
+function playerAutoAct(actor){
+  var cls = CLASSES[actor.classId];
+  var alliesAlive = state.combat.party.filter(function(p){return p.hp>0;});
+  var enemiesAlive = state.combat.enemies.filter(function(e){return e.hp>0;});
+  if(!alliesAlive.length || !enemiesAlive.length) return;
+  var mostWounded = alliesAlive.reduce(function(a,b){return (b.hp/b.maxHp < a.hp/a.maxHp) ? b : a;});
+  var woundedCount = alliesAlive.filter(function(a){return a.hp/a.maxHp<0.5;}).length;
+
+  var healAbilities = cls.abilities.filter(function(a){return (a.kind==='heal'||a.kind==='healAll') && actor.focus>=a.cost;});
+  if(mostWounded.hp/mostWounded.maxHp < 0.3 && !healAbilities.length && state.consumables.healPotion>0){
+    var amt = Math.round(mostWounded.maxHp*0.4);
+    mostWounded.hp = Math.min(mostWounded.maxHp, mostWounded.hp+amt);
+    state.consumables.healPotion--;
+    logMsg(actor.name+" utilise une Potion de soin sur "+mostWounded.name+" (+"+amt+" PV).", 'heal');
+    return;
+  }
+  if(healAbilities.length && woundedCount>0){
+    var healAb = (woundedCount>=2 && healAbilities.some(function(a){return a.kind==='healAll';}))
+      ? healAbilities.find(function(a){return a.kind==='healAll';})
+      : healAbilities[0];
+    payFocus(actor, healAb);
+    performAbility(actor, healAb, healAb.kind==='heal'?mostWounded.uid:null);
+    return;
+  }
+  var buffAbilities = cls.abilities.filter(function(a){return ['buffSelf','buffAll','shieldSelf'].indexOf(a.kind)!==-1 && actor.focus>=a.cost;});
+  if(buffAbilities.length && state.combat.round<=1){
+    var buffAb = buffAbilities[0];
+    payFocus(actor, buffAb);
+    performAbility(actor, buffAb, null);
+    return;
+  }
+  var debuffAbilities = cls.abilities.filter(function(a){return a.kind==='debuff' && actor.focus>=a.cost;});
+  if(debuffAbilities.length && Math.random()<0.3){
+    var deb = debuffAbilities[0];
+    var debTargetUid = null;
+    if(deb.target!=='all'){
+      var debPool = targetableList(deb, enemiesAlive);
+      if(!debPool.length) debPool = enemiesAlive;
+      debTargetUid = debPool[Math.floor(Math.random()*debPool.length)].uid;
+    }
+    payFocus(actor, deb);
+    performAbility(actor, deb, debTargetUid);
+    return;
+  }
+  var dmgAbilities = cls.abilities.filter(function(a){return (a.kind==='attack'||a.kind==='aoeAttack') && actor.focus>=a.cost;});
+  var chosen = null;
+  if(enemiesAlive.length>=2) chosen = dmgAbilities.find(function(a){return a.kind==='aoeAttack';});
+  if(!chosen){
+    var singles = dmgAbilities.filter(function(a){return a.kind==='attack';});
+    chosen = singles.length ? singles.reduce(function(a,b){return (b.power||0)>(a.power||0)?b:a;}) : cls.abilities[0];
+  }
+  var atkTargetUid = null;
+  if(chosen.kind==='attack'){
+    var atkPool = targetableList(chosen, enemiesAlive);
+    if(!atkPool.length) atkPool = enemiesAlive;
+    atkTargetUid = atkPool.reduce(function(a,b){return b.hp<a.hp?b:a;}).uid;
+  }
+  payFocus(actor, chosen);
+  performAbility(actor, chosen, atkTargetUid);
+}
+function combatStep(){
   var c = state.combat;
+  if(!c || c.ended) return true;
   var guard=0;
-  while(guard++<600){
-    if(checkCombatEnd()) { onCombatEnd(); return; }
+  while(guard++<50){
+    if(checkCombatEnd()){ onCombatEnd(); return true; }
     var actor = currentActor();
     if(!actor){ advanceQueueIndex(); continue; }
     if(actor.hp<=0){ advanceQueueIndex(); continue; }
     var canAct = startOfTurnUpkeep(actor);
-    if(!canAct){ advanceQueueIndex(); if(checkCombatEnd()){onCombatEnd();return;} continue; }
-    if(actor.isEnemy){
-      enemyChooseAndAct(actor);
-      if(checkCombatEnd()){ onCombatEnd(); return; }
-      advanceQueueIndex();
-      continue;
-    }
-    c.awaitingAbility=null; c.awaitingTarget=null;
-    render();
-    return;
+    if(!canAct){ advanceQueueIndex(); if(checkCombatEnd()){ onCombatEnd(); return true; } continue; }
+    if(actor.isEnemy) enemyChooseAndAct(actor); else playerAutoAct(actor);
+    if(checkCombatEnd()){ onCombatEnd(); return true; }
+    advanceQueueIndex();
+    return false;
   }
+  return false;
+}
+function tickCombat(){
+  if(!state.combat || state.combat.ended) return;
+  var done = combatStep();
+  render();
+  if(done) return;
+  if(state.combat && state.combat.autoPlay){
+    state.combat._timer = setTimeout(tickCombat, state.combat.speed);
+  }
+}
+function onResumeCombat(){
+  if(!state.combat || state.combat.ended) return;
+  clearTimeout(state.combat._timer);
+  state.combat.autoPlay = true;
+  tickCombat();
+}
+function onPauseCombat(){
+  if(!state.combat) return;
+  clearTimeout(state.combat._timer);
+  state.combat.autoPlay = false;
   render();
 }
-function submitAbilityChoice(abilityId){
-  var actor = currentActor(); if(!actor || actor.isEnemy) return;
-  var ability = actor.uid && CLASSES[actor.classId].abilities.find(function(a){return a.id===abilityId;});
-  if(!ability) return;
-  if(actor.focus<ability.cost) return;
-  var owner = classFeatOwner(actor.uid);
-  var free = owner && hasFeat(owner,'metamagic') && Math.random()<0.15;
-  var needsTarget = (['attack','heal','debuff'].includes(ability.kind) && ability.target!=='all' && ability.target!=='self');
-  if(needsTarget){
-    state.combat.awaitingAbility = ability; state.combat.awaitingTarget = true; state.combat._freeCast=free;
-    render(); return;
-  }
-  actor.focus -= free?0:ability.cost;
-  performAbility(actor, ability, null);
-  if(free) logMsg(actor.name+" lance le sort gratuitement (Métamagie) !", 'info');
-  if(checkCombatEnd()){ onCombatEnd(); return; }
-  advanceQueueIndex(); runQueue();
+function onStepCombat(){
+  if(!state.combat || state.combat.ended) return;
+  clearTimeout(state.combat._timer);
+  state.combat.autoPlay = false;
+  combatStep();
+  render();
 }
-function submitTargetChoice(targetUid){
-  var actor = currentActor(); if(!actor) return;
-  var ability = state.combat.awaitingAbility; if(!ability) return;
-  var free = state.combat._freeCast;
-  actor.focus -= free?0:ability.cost;
-  performAbility(actor, ability, targetUid);
-  if(free) logMsg(actor.name+" lance le sort gratuitement (Métamagie) !", 'info');
-  state.combat.awaitingAbility=null; state.combat.awaitingTarget=null; state.combat._freeCast=false;
-  if(checkCombatEnd()){ onCombatEnd(); return; }
-  advanceQueueIndex(); runQueue();
+function onToggleCombatSpeed(){
+  if(!state.combat) return;
+  state.combat.speed = state.combat.speed<=300 ? 750 : 250;
+  render();
 }
-function useConsumable(kind){
-  var actor = currentActor(); if(!actor || actor.isEnemy) return;
-  if(kind==='healPotion'){
-    if(!state.consumables.healPotion) return;
-    state.combat.awaitingAbility = {id:'_potion',name:'Potion de soin',kind:'heal',power:0,target:'ally',fixedHeal:true};
-    state.combat.awaitingTarget = true; state.combat._potionUse='healPotion';
-    render();
-  } else if(kind==='elixir'){
-    if(!state.consumables.elixir) return;
-    state.combat.awaitingAbility = {id:'_elixir',name:'Élixir de vigueur',kind:'heal',power:0,target:'ally',fixedHeal:true,cleanse:true};
-    state.combat.awaitingTarget = true; state.combat._potionUse='elixir';
-    render();
-  }
-}
-function submitPotionTarget(targetUid){
-  var actor = currentActor(); var kind = state.combat._potionUse;
-  var target = state.combat.party.find(function(p){return p.uid===targetUid;});
-  if(target && target.hp>0){
-    var amt = Math.round(target.maxHp*0.4);
-    target.hp = Math.min(target.maxHp, target.hp+amt);
-    logMsg(actor.name+" utilise "+(kind==='healPotion'?'une Potion de soin':'un Élixir de vigueur')+" sur "+target.name+" (+"+amt+" PV).", 'heal');
-    if(kind==='elixir'){ target.tempEffects = target.tempEffects.filter(function(e){return !['debuffAc','debuffAtk','debuffSpd','stunActive','weaken','markDamage'].includes(e.type);}); }
-    state.consumables[kind]--;
-  }
-  state.combat.awaitingAbility=null; state.combat.awaitingTarget=null; state.combat._potionUse=null;
-  if(checkCombatEnd()){ onCombatEnd(); return; }
-  advanceQueueIndex(); runQueue();
+function onSkipCombat(){
+  if(!state.combat) return;
+  clearTimeout(state.combat._timer);
+  state.combat.autoPlay = false;
+  var guard=0;
+  while(state.combat && !state.combat.ended && guard++<600){ combatStep(); }
+  render();
 }
 function onCombatEnd(){
   var c = state.combat;
+  if(c._timer) clearTimeout(c._timer);
   state.runBuffs = state.runBuffs.map(function(b){return Object.assign({},b,{combatsLeft:b.combatsLeft-1});}).filter(function(b){return b.combatsLeft>0;});
   if(c.result==='defeat'){
     state.view='END'; state.screen={outcome:'defeat', floor:c.node.layer};
@@ -1156,7 +1201,7 @@ function renderTitle(){
   return '<div class="title-screen">'+
     '<div class="title-emblem">🗝️🏰</div>'+
     '<h1 class="title-h1">La Crypte aux <span>Treize Voies</span></h1>'+
-    '<p class="title-sub">Assemblez une compagnie de quatre héros parmi treize archétypes légendaires, plongez dans un donjon généré à chaque expédition, et forgez des synergies de classes, de sorts et de butins pour atteindre le cœur de la Crypte.</p>'+
+    '<p class="title-sub">Assemblez une compagnie de quatre héros parmi treize archétypes légendaires, puis regardez-la combattre seule, salle après salle. Entre les affrontements, ajustez équipement, formation et talents pour forger les synergies qui mèneront votre troupe au cœur de la Crypte.</p>'+
     '<div class="title-actions">'+
       (hasSave ? '<button class="btn btn-primary" onclick="onContinueRun()">Reprendre l\'expédition</button>' : '')+
       '<button class="btn'+(hasSave?' btn-ghost':' btn-primary')+'" onclick="onNewRun()">Nouvelle expédition</button>'+
@@ -1194,7 +1239,7 @@ function renderBuild(){
   }).join('');
   var syn = picks.length? computeRoleSynergy(picks.map(function(cid){return {classId:cid};})) : {lines:[]};
   return '<div class="wrap">'+
-    '<div class="section-head"><div><h2>Composez votre compagnie</h2><p>Choisissez exactement 4 classes parmi les treize voies de la Crypte. Les deux premières formeront la ligne de front.</p></div>'+
+    '<div class="section-head"><div><h2>Composez votre compagnie</h2><p>Choisissez exactement 4 classes parmi les treize voies de la Crypte. Les deux premières formeront la ligne de front. Une fois en donjon, votre compagnie combat seule : vos choix ici et vos ajustements entre les salles font toute la stratégie.</p></div>'+
     '<button class="btn btn-primary" '+(picks.length===4?'':'disabled')+' onclick="onConfirmBuild()">Descendre dans le donjon →</button></div>'+
     '<div class="roster-strip">'+slots+'</div>'+
     (syn.lines.length? '<div class="synergy-box">'+syn.lines.map(function(l){return '<div class="synergy-line">✦ '+l+'</div>';}).join('')+'</div>':'')+
@@ -1217,21 +1262,28 @@ function onConfirmBuild(){
 }
 
 /* ---- MAP ---- */
-function renderMap(){
-  var avail = availableNodeIds();
+function mapLayout(){
   var m = state.mapNodes;
   var layerW = 130, padX=50, padY=40;
   var maxNodesInLayer = 0;
   var byLayer = {};
   m.nodes.forEach(function(n){ (byLayer[n.layer]=byLayer[n.layer]||[]).push(n); maxNodesInLayer=Math.max(maxNodesInLayer, byLayer[n.layer].length); });
   var svgH = padY*2 + maxNodesInLayer*100;
-  var svgW = padX*2 + (m.layers-1)*layerW;
+  var svgW = padX*2 + (m.layers-1)*layerW + 70;
   function pos(n){
     var arr = byLayer[n.layer];
     var y = padY + (arr.length===1 ? svgH/2-padY : n.idx*( (svgH-padY*2) / Math.max(1,arr.length-1) ));
     var x = padX + n.layer*layerW;
     return {x:x,y:y};
   }
+  return {svgW:svgW, svgH:svgH, padX:padX, pos:pos, startPos:{x:padX-58,y:svgH/2}};
+}
+function renderMap(){
+  var avail = availableNodeIds();
+  var m = state.mapNodes;
+  var L = mapLayout();
+  var pos = L.pos;
+  var travel = state.mapTravel;
   var lines='';
   m.nodes.forEach(function(n){
     var p1=pos(n);
@@ -1243,16 +1295,27 @@ function renderMap(){
   });
   var nodesHtml = m.nodes.map(function(n){
     var p = pos(n);
-    var isAvail = avail.indexOf(n.id)!==-1 && !n.visited;
+    var isAvail = !travel && avail.indexOf(n.id)!==-1 && !n.visited;
     var isCurrent = state.currentNodeId===n.id;
     var cls='node-btn'+(isAvail?' available':'')+(n.visited?' visited':'')+(isCurrent?' current':'')+(n.type==='boss'?' boss':'')+((!isAvail&&!isCurrent)?' locked':'');
     return '<div class="'+cls+'" style="left:'+p.x+'px;top:'+p.y+'px;" '+(isAvail?'onclick="onEnterNode(\''+n.id+'\')"':'')+' title="'+nodeTitle(n)+'">'+NODE_ICONS[n.type]+'<span class="nb-lvl">Étage '+(n.layer+1)+'</span></div>';
   }).join('');
+  var curPos = state.currentNodeId ? pos(m.byId[state.currentNodeId]) : L.startPos;
+  var tokenStyle = 'left:'+curPos.x+'px;top:'+curPos.y+'px;';
+  var tokenClass = 'party-token token-idle';
+  if(travel){
+    var dstPos = pos(m.byId[travel.toNodeId]);
+    tokenStyle += '--dx:'+(dstPos.x-curPos.x)+'px;--dy:'+(dstPos.y-curPos.y)+'px;';
+    tokenClass = 'party-token token-moving';
+  }
+  var tokenIcons = activeUnits(state).slice(0,4).map(function(u){return '<span>'+CLASSES[u.classId].icon+'</span>';}).join('');
+  var tokenHtml = '<div class="'+tokenClass+'" style="'+tokenStyle+'">'+tokenIcons+'</div>';
   return '<div class="wrap">'+
-    '<div class="map-head"><h2>Carte de la Crypte</h2><div class="muted">Choisissez la salle suivante parmi les chemins accessibles.</div></div>'+
-    '<div class="scroller"><div class="map-svg-wrap" style="height:'+svgH+'px;min-height:260px;">'+
-    '<svg width="'+svgW+'" height="'+svgH+'" style="position:absolute;left:0;top:0;pointer-events:none;">'+lines+'</svg>'+
+    '<div class="map-head"><h2>Carte de la Crypte</h2><div class="muted">'+(travel?'Votre compagnie se déplace…':'Choisissez la salle suivante parmi les chemins accessibles.')+'</div></div>'+
+    '<div class="scroller"><div class="map-svg-wrap" style="height:'+L.svgH+'px;min-height:260px;">'+
+    '<svg width="'+L.svgW+'" height="'+L.svgH+'" style="position:absolute;left:0;top:0;pointer-events:none;">'+lines+'</svg>'+
     nodesHtml+
+    tokenHtml+
     '</div></div>'+
     '<div class="legend">'+Object.keys(NODE_ICONS).map(function(t){return '<span>'+NODE_ICONS[t]+' '+nodeTypeLabel(t)+'</span>';}).join('')+'</div>'+
     renderSynergyPanel()+
@@ -1266,6 +1329,13 @@ function renderSynergyPanel(){
   return '<div class="panel" style="margin-top:16px;"><h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-dim);margin-bottom:8px;">Synergies actives</h3><div class="synergy-box">'+syn.lines.map(function(l){return '<div class="synergy-line">✦ '+l+'</div>';}).join('')+'</div></div>';
 }
 function onEnterNode(nodeId){
+  if(state.mapTravel) return;
+  state.mapTravel = {toNodeId: nodeId};
+  render();
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setTimeout(function(){ state.mapTravel = null; resolveNodeEntry(nodeId); }, reduced?0:520);
+}
+function resolveNodeEntry(nodeId){
   var node = state.mapNodes.byId[nodeId];
   node.visited = true; state.currentNodeId = nodeId; state.floor = node.layer;
   if(node.layer > (state.meta.bestFloor||0)){ state.meta.bestFloor = node.layer; saveMeta(state.meta); }
@@ -1301,12 +1371,12 @@ function renderCombat(){
     var u = findCombatant(q.uid,q.isEnemy);
     return '<div class="init-chip'+(i===c.qIndex?' now':'')+'" title="'+u.name+'">'+(u.isEnemy?u.icon:CLASSES[u.classId].icon)+'</div>';
   }).join('');
-  function unitCard(u, selectable){
+  function unitCard(u){
     var pct = Math.max(0,Math.round(u.hp/u.maxHp*100));
     var focusPct = u.focusMax? Math.round(u.focus/u.focusMax*100):0;
     var effs = u.tempEffects.map(function(e){ return '<span class="eff '+(['buffAc','buffAtk','buffSpd','shield','buffAtkSelf','buffMagSelf','buffAtkFromMag'].indexOf(e.type)!==-1?'buff':'debuff')+'">'+effLabel(e)+'</span>';}).join('');
-    var isActing = actor && actor.uid===u.uid && u.hp>0;
-    return '<div class="unit-card'+(u.hp<=0?' dead':'')+(isActing?' acting':'')+(selectable?' selectable':'')+'" '+(selectable?'onclick="onSelectTarget(\''+u.uid+'\')"':'')+'>'+
+    var isActing = actor && actor.uid===u.uid && u.hp>0 && !c.ended;
+    return '<div class="unit-card'+(u.hp<=0?' dead':'')+(isActing?' acting':'')+'">'+
       '<div class="uc-icon">'+(u.isEnemy?u.icon:CLASSES[u.classId].icon)+'</div>'+
       '<div class="uc-body"><div class="uc-top"><span>'+u.name+'</span>'+(u.level?'<span class="lvl">Nv.'+u.level+'</span>':'')+'</div>'+
       '<div class="bar bar-hp'+(pct<35?' low':'')+'"><i style="width:'+pct+'%"></i></div>'+
@@ -1314,32 +1384,17 @@ function renderCombat(){
       (effs?'<div class="uc-effects">'+effs+'</div>':'')+
       '</div></div>';
   }
-  var choosingTarget = c.awaitingTarget && actor && !actor.isEnemy;
-  var sideForTarget = choosingTarget ? (['heal'].includes(c.awaitingAbility.kind) ? c.party : c.enemies) : null;
-  var partyHtml = c.party.map(function(u){ return unitCard(u, choosingTarget && sideForTarget===c.party); }).join('');
-  var enemyHtml = c.enemies.map(function(u){ return unitCard(u, choosingTarget && sideForTarget===c.enemies); }).join('');
-  var actionPanel = '';
-  if(actor && !actor.isEnemy && !c.ended){
-    if(c.awaitingAbility){
-      var pool = targetableList(c.awaitingAbility, sideForTarget);
-      actionPanel = '<div class="action-panel"><div class="ap-head"><b>'+CLASSES[actor.classId].name+'</b><span class="muted">Choisissez une cible pour '+c.awaitingAbility.name+'</span></div>'+
-        '<div class="target-row">'+pool.map(function(t){return '<button class="target-btn" onclick="onSelectTarget(\''+t.uid+'\')">'+t.name+'</button>';}).join('')+
-        '<button class="btn btn-ghost btn-sm" onclick="onCancelTarget()">Annuler</button></div></div>';
-    } else {
-      var abilities = CLASSES[actor.classId].abilities.map(function(a){
-        var can = actor.focus>=a.cost;
-        return '<button class="ability-btn" '+(can?'':'disabled')+' onclick="submitAbilityChoice(\''+a.id+'\')"><div class="ab-t"><span>'+a.name+'</span><span class="cost">'+(a.cost? a.cost+' foc.':'gratuit')+'</span></div><div class="ab-d">'+a.desc+'</div></button>';
-      }).join('');
-      actionPanel = '<div class="action-panel"><div class="ap-head"><b>Tour de '+CLASSES[actor.classId].name+'</b><span class="muted mono">Concentration '+actor.focus+'/'+actor.focusMax+'</span></div>'+
-        '<div class="ability-row">'+abilities+'</div>'+
-        '<div class="target-row">'+
-        '<button class="btn btn-sm" '+(state.consumables.healPotion?'':'disabled')+' onclick="useConsumable(\'healPotion\')">🧪 Potion de soin ('+(state.consumables.healPotion||0)+')</button>'+
-        '<button class="btn btn-sm" '+(state.consumables.elixir?'':'disabled')+' onclick="useConsumable(\'elixir\')">⚗️ Élixir ('+(state.consumables.elixir||0)+')</button>'+
-        '</div></div>';
-    }
-  } else if(!c.ended){
-    actionPanel = '<div class="action-panel"><span class="muted">Résolution des actions ennemies…</span></div>';
-  }
+  var partyHtml = c.party.map(unitCard).join('');
+  var enemyHtml = c.enemies.map(unitCard).join('');
+  var playing = c.autoPlay && !c.ended;
+  var fast = c.speed<=300;
+  var actionPanel = c.ended ? '' : '<div class="action-panel"><div class="ap-head"><b>⚔ Combat automatique</b><span class="muted">Votre compagnie combat seule — ajustez l\'équipement et la formation entre les salles.</span></div>'+
+    '<div class="ability-row">'+
+    (playing ? '<button class="btn btn-sm" onclick="onPauseCombat()">⏸ Pause</button>' : '<button class="btn btn-sm btn-primary" onclick="onResumeCombat()">▶ Lecture</button>')+
+    (!playing ? '<button class="btn btn-sm" onclick="onStepCombat()">⏭ Étape suivante</button>' : '')+
+    '<button class="btn btn-sm" onclick="onToggleCombatSpeed()">'+(fast?'🐇 Rapide':'🐢 Normal')+'</button>'+
+    '<button class="btn btn-sm btn-ghost" onclick="onSkipCombat()">⏩ Terminer le combat</button>'+
+    '</div></div>';
   var logHtml = c.log.slice().reverse().map(function(l){return '<div class="log-line '+l.cls+'">'+l.text+'</div>';}).join('');
   return '<div class="wrap">'+
     '<div class="section-head"><h2>'+nodeTypeLabel(c.node.type)+' — Étage '+(c.node.layer+1)+'</h2><div class="muted">Round '+c.round+'</div></div>'+
@@ -1356,11 +1411,6 @@ function effLabel(e){
   var map={buffAc:'+CA',debuffAc:'-CA',buffAtk:'+ATT',debuffAtk:'-ATT',buffSpd:'+VIT',debuffSpd:'-VIT',stunActive:'Étourdi',shield:'Bouclier',weaken:'Affaibli',markDamage:'Marqué',debuffAcSelf:'-CA (soi)',buffAtkSelf:'+ATT (tourelle)',buffMagSelf:'+MAG (tourelle)',buffAtkFromMag:'Forme animale',dodge:'Esquive+'};
   return map[e.type]||e.type;
 }
-function onSelectTarget(uid){
-  if(state.combat._potionUse) submitPotionTarget(uid);
-  else submitTargetChoice(uid);
-}
-function onCancelTarget(){ state.combat.awaitingAbility=null; state.combat.awaitingTarget=null; state.combat._potionUse=null; render(); }
 
 /* ---- REWARD ---- */
 function renderReward(){
@@ -1557,6 +1607,8 @@ function onRestartAfterEnd(victory){
 (function init(){
   var saved = loadGame();
   state = saved || newState();
+  if(state.mapTravel) state.mapTravel = null;
+  if(state.combat) state.combat.autoPlay = false;
   render();
 })();
 </script>
