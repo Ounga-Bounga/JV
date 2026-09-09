@@ -1,4 +1,11 @@
-# Ragdoll Battle 3D
+# JV — Projets de jeux
+
+Ce depot regroupe plusieurs petits jeux independants.
+
+- [`dnd-dungeon-crawler/`](./dnd-dungeon-crawler) — *La Crypte aux Treize Voies*, un RPG roguelike au tour par tour ou l'on compose une equipe de 4 heros parmi 13 classes de D&D.
+- Ragdoll Battle 3D (racine du depot, voir ci-dessous).
+
+## Ragdoll Battle 3D
 
 Simulateur de bataille 3D avec des IA ragdoll qui s'affrontent, et une camera libre inspiree de *Totally Accurate Battle Simulator*.
 

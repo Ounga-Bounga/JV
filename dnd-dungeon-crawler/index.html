@@ -1,0 +1,1562 @@
+<title>La Crypte aux Treize Voies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#100d0a;
+  --bg-elevated:#181310;
+  --surface:#221b14;
+  --surface-2:#2b2118;
+  --surface-3:#352819;
+  --ink:#ece0c4;
+  --ink-dim:#a3906f;
+  --ink-faint:#6f5f47;
+  --border:rgba(236,224,196,0.13);
+  --border-strong:rgba(236,224,196,0.24);
+  --accent:#d99a3f;
+  --accent-bright:#f3b968;
+  --accent-ink:#241505;
+  --gold:#e2bb6a;
+  --good:#7fae7a;
+  --bad:#c1495a;
+  --role-tank:#7fa0c2;
+  --role-melee:#c1495a;
+  --role-ranged:#6fa36c;
+  --role-healer:#d8c98a;
+  --role-support:#b087cf;
+  --role-caster:#7f92e0;
+  --shadow-lg:0 24px 60px -20px rgba(0,0,0,0.65);
+  --shadow-md:0 10px 26px -12px rgba(0,0,0,0.55);
+  --radius:10px;
+  --font-display:'Cinzel',Georgia,'Times New Roman',serif;
+  --font-body:'Spectral',Georgia,'Times New Roman',serif;
+  --font-mono:'JetBrains Mono','Consolas',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:
+    radial-gradient(1100px 700px at 12% -10%, rgba(217,154,63,0.08), transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, rgba(127,146,224,0.06), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:0.001ms !important;transition-duration:0.001ms !important;}}
+h1,h2,h3,h4{font-family:var(--font-display);letter-spacing:0.02em;text-wrap:balance;margin:0;color:var(--ink);}
+button{font-family:inherit;cursor:pointer;}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:6px;}
+
+#app{min-height:100vh;display:flex;flex-direction:column;}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 20px 48px;width:100%;}
+.scroller{overflow-x:auto;}
+
+/* ---- generic buttons ---- */
+.btn{
+  appearance:none;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink);
+  padding:10px 18px;border-radius:8px;font-size:13.5px;font-weight:600;letter-spacing:0.01em;
+  transition:transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.btn:hover:not(:disabled){background:var(--surface-3);border-color:var(--accent);transform:translateY(-1px);}
+.btn:active:not(:disabled){transform:translateY(0);}
+.btn:disabled{opacity:0.38;cursor:not-allowed;}
+.btn:focus-visible{outline:2px solid var(--accent-bright);outline-offset:2px;}
+.btn-primary{background:linear-gradient(180deg, var(--accent-bright), var(--accent));color:var(--accent-ink);border-color:var(--accent);font-weight:700;}
+.btn-primary:hover:not(:disabled){filter:brightness(1.08);background:linear-gradient(180deg, var(--accent-bright), var(--accent));}
+.btn-danger{border-color:rgba(193,73,90,0.5);color:#f0b9be;}
+.btn-danger:hover:not(:disabled){background:rgba(193,73,90,0.16);border-color:var(--bad);}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-dim);}
+.btn-ghost:hover:not(:disabled){background:var(--surface-2);color:var(--ink);}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px;}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;border:1px solid var(--border-strong);color:var(--ink-dim);}
+.tag-role{border:none;color:var(--accent-ink);}
+
+/* ---- topbar ---- */
+.topbar{
+  position:sticky;top:0;z-index:20;background:rgba(16,13,10,0.92);backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--border);padding:10px 20px;
+}
+.topbar-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.topbar-brand{font-family:var(--font-display);font-size:15px;color:var(--accent-bright);white-space:nowrap;}
+.topbar-party{display:flex;gap:10px;flex:1;flex-wrap:wrap;}
+.tb-card{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-width:150px;}
+.tb-icon{font-size:19px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border-radius:6px;flex-shrink:0;}
+.tb-body{flex:1;min-width:0;}
+.tb-name{font-size:11.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:3px;}
+.bar>i{display:block;height:100%;border-radius:99px;transition:width .35s ease;}
+.bar-hp>i{background:linear-gradient(90deg,#7fae7a,#a7cf85);}
+.bar-hp.low>i{background:linear-gradient(90deg,#c1495a,#e07f7f);}
+.bar-focus>i{background:linear-gradient(90deg,#7f92e0,#a6b4f2);}
+.tb-ko{color:var(--bad);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+.topbar-meta{display:flex;align-items:center;gap:14px;font-family:var(--font-mono);font-size:13px;color:var(--gold);white-space:nowrap;}
+
+/* ---- title screen ---- */
+.title-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px 20px;gap:28px;}
+.title-emblem{font-size:52px;filter:drop-shadow(0 6px 18px rgba(217,154,63,0.35));}
+.title-h1{font-size:clamp(30px,5vw,52px);font-weight:900;color:var(--ink);}
+.title-h1 span{color:var(--accent-bright);}
+.title-sub{max-width:520px;color:var(--ink-dim);font-size:15.5px;font-style:italic;}
+.title-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px;}
+.title-meta{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);}
+
+/* ---- class builder ---- */
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.section-head h2{font-size:22px;}
+.section-head p{color:var(--ink-dim);margin:2px 0 0;font-size:13.5px;}
+.class-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}
+.class-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s ease, transform .15s ease, box-shadow .15s ease;}
+.class-card:hover{border-color:var(--border-strong);}
+.class-card.picked{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset, var(--shadow-md);}
+.class-card.disabled{opacity:0.42;}
+.cc-head{display:flex;align-items:center;gap:10px;}
+.cc-icon{font-size:26px;width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);flex-shrink:0;}
+.cc-name{font-family:var(--font-display);font-size:15.5px;font-weight:700;}
+.cc-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-family:var(--font-mono);font-size:11px;color:var(--ink-dim);text-align:center;}
+.cc-stats b{display:block;color:var(--ink);font-size:13px;}
+.cc-abilities{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--ink-dim);}
+.cc-abilities .ab-name{color:var(--ink);font-weight:600;}
+.cc-feat{font-size:11.5px;color:var(--accent-bright);border-top:1px dashed var(--border);padding-top:7px;}
+.cc-pick{margin-top:auto;}
+.roster-strip{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+.roster-slot{flex:1;min-width:130px;background:var(--surface);border:1px dashed var(--border-strong);border-radius:8px;padding:10px;text-align:center;color:var(--ink-faint);font-size:12px;min-height:74px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+.roster-slot.filled{border-style:solid;color:var(--ink);}
+.roster-slot .rs-icon{font-size:22px;}
+
+/* ---- map ---- */
+.map-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
+.map-svg-wrap{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px 30px;min-width:760px;}
+.node-btn{position:absolute;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:2px solid var(--border-strong);background:var(--surface-2);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:24px;transition:all .15s ease;}
+.node-btn .nb-lvl{position:absolute;bottom:-16px;font-family:var(--font-mono);font-size:9.5px;color:var(--ink-faint);}
+.node-btn.available{border-color:var(--accent);box-shadow:0 0 0 4px rgba(217,154,63,0.15);cursor:pointer;}
+.node-btn.available:hover{transform:translate(-50%,-50%) scale(1.08);background:var(--surface-3);}
+.node-btn.visited{opacity:0.5;}
+.node-btn.current{border-color:var(--accent-bright);box-shadow:0 0 0 5px rgba(217,154,63,0.28);}
+.node-btn.locked{opacity:0.3;cursor:default;}
+.node-btn.boss{width:74px;height:74px;background:linear-gradient(180deg,#3a1a20,#221114);border-color:var(--bad);}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px;font-size:12px;color:var(--ink-dim);}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+
+/* ---- combat ---- */
+.combat-shell{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:14px;}
+@media(max-width:820px){.combat-shell{grid-template-columns:1fr;}}
+.combat-side h3{font-size:13px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-dim);margin-bottom:8px;}
+.unit-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:8px;display:flex;gap:10px;align-items:center;transition:border-color .15s ease, box-shadow .15s ease;}
+.unit-card.acting{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
+.unit-card.dead{opacity:0.38;filter:grayscale(0.6);}
+.unit-card.selectable{cursor:pointer;border-color:var(--role-ranged);}
+.unit-card.selectable:hover{background:var(--surface-2);}
+.uc-icon{font-size:24px;width:40px;height:40px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.uc-body{flex:1;min-width:0;}
+.uc-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600;}
+.uc-top .lvl{color:var(--ink-faint);font-weight:400;font-family:var(--font-mono);font-size:11px;}
+.uc-effects{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.eff{font-size:9.5px;padding:1px 6px;border-radius:99px;background:var(--surface-2);color:var(--ink-dim);border:1px solid var(--border);}
+.eff.buff{color:var(--good);}
+.eff.debuff{color:var(--bad);}
+.init-strip{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:9px;}
+.init-chip{font-size:16px;width:32px;height:32px;border-radius:7px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;opacity:0.45;}
+.init-chip.now{opacity:1;background:var(--accent);box-shadow:0 0 0 2px var(--accent-bright);}
+.action-panel{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;}
+.ap-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.ability-row{display:flex;gap:8px;flex-wrap:wrap;}
+.ability-btn{text-align:left;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;min-width:150px;flex:1;}
+.ability-btn .ab-t{display:flex;justify-content:space-between;font-weight:700;font-size:13px;}
+.ability-btn .ab-t .cost{font-family:var(--font-mono);color:var(--role-caster);font-weight:400;font-size:11px;}
+.ability-btn .ab-d{font-size:11.5px;color:var(--ink-dim);margin-top:3px;}
+.target-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
+.target-btn{background:var(--surface-2);border:1px solid var(--border-strong);border-radius:7px;padding:7px 12px;font-size:12.5px;}
+.target-btn:hover{border-color:var(--accent);}
+.log-panel{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;max-height:210px;overflow-y:auto;font-size:12.5px;display:flex;flex-direction:column-reverse;}
+.log-line{padding:3px 0;border-bottom:1px solid rgba(236,224,196,0.05);color:var(--ink-dim);}
+.log-line b{color:var(--ink);}
+.log-line.hit{color:var(--bad);}
+.log-line.heal{color:var(--good);}
+.log-line.info{color:var(--accent-bright);font-style:italic;}
+
+/* ---- panels: shop / event / camp / reward ---- */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+.item-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;}
+.item-card{background:var(--surface-2);border:1px solid var(--border-strong);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:6px;}
+.item-card.rare{border-color:#5d7bb0;}
+.item-card.epic{border-color:#a56bd6;}
+.item-card.common{border-color:var(--border-strong);}
+.ic-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;}
+.ic-name{font-weight:700;font-size:13.5px;}
+.ic-rarity{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
+.ic-rarity.common{color:var(--ink-faint);}
+.ic-rarity.rare{color:#8fb0e6;}
+.ic-rarity.epic{color:#cf9df0;}
+.ic-stats{font-family:var(--font-mono);font-size:11.5px;color:var(--good);}
+.ic-syn{font-size:11px;color:var(--accent-bright);font-style:italic;}
+.event-text{font-size:16px;line-height:1.65;color:var(--ink);margin-bottom:16px;font-style:italic;}
+.event-title{margin-bottom:10px;}
+.opt-list{display:flex;flex-direction:column;gap:8px;}
+.opt-btn{text-align:left;background:var(--surface-2);border:1px solid var(--border-strong);border-radius:8px;padding:11px 14px;}
+.opt-btn:hover:not(:disabled){border-color:var(--accent);}
+.opt-btn small{display:block;color:var(--ink-dim);font-weight:400;margin-top:2px;}
+.outcome-box{background:var(--bg-elevated);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:12px 14px;margin-top:14px;font-size:13.5px;}
+.formation-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:440px;}
+.form-slot{background:var(--surface-2);border:1px solid var(--border-strong);border-radius:9px;padding:10px;text-align:center;cursor:pointer;}
+.form-slot.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;}
+.form-slot .fs-icon{font-size:26px;}
+.form-slot small{display:block;color:var(--ink-faint);font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+.bench-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+.talent-choice{display:flex;gap:12px;flex-wrap:wrap;}
+.talent-card{flex:1;min-width:200px;background:var(--surface-2);border:1px solid var(--border-strong);border-radius:9px;padding:14px;text-align:center;}
+.talent-card h4{font-size:14px;margin-bottom:6px;}
+.talent-card p{font-size:12px;color:var(--ink-dim);margin:0 0 10px;}
+.synergy-box{display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+.synergy-line{font-size:12.5px;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:7px;color:var(--accent-bright);}
+.two-col{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;}
+@media(max-width:900px){.two-col{grid-template-columns:1fr;}}
+.slot-picker{display:flex;gap:6px;margin-top:6px;}
+.end-screen{text-align:center;padding:60px 20px;}
+.end-screen .big{font-size:44px;margin-bottom:10px;}
+.stat-row{display:flex;gap:24px;justify-content:center;margin:22px 0;flex-wrap:wrap;}
+.stat-row div{font-family:var(--font-mono);}
+.stat-row b{display:block;font-size:24px;color:var(--accent-bright);}
+.stat-row span{font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.05em;}
+.muted{color:var(--ink-dim);font-size:12.5px;}
+.hidden{display:none !important;}
+</style>
+
+<div id="app"></div>
+
+<script>
+"use strict";
+
+/* ============================= DATA: CLASSES ============================= */
+var CLASSES = {
+  barbarian:{id:'barbarian',name:'Barbare',icon:'🪓',role:'tank',critBase:0.05,
+    base:{hp:48,ac:15,atk:9,mag:1,spd:8,focus:4},
+    growth:{hp:6,atk:1.3,mag:0},
+    abilities:[
+      {id:'b0',name:'Coup de hache',kind:'attack',stat:'ATK',power:1.0,melee:true,cost:0,desc:"Attaque de base à l'arme lourde."},
+      {id:'b1',name:'Assaut téméraire',kind:'attack',stat:'ATK',power:1.6,melee:true,cost:2,effect:{type:'debuffAcSelf',amount:2,turns:1},desc:"Frappe violente (dégâts x1.6) mais baisse votre garde."},
+      {id:'b2',name:'Rage',kind:'buffSelf',cost:3,effect:{type:'buffAtk',amount:0.4,turns:3,pct:true},effect2:{type:'buffAc',amount:2,turns:3},desc:"+40% ATT et +2 CA pendant 3 tours."}
+    ],
+    feat:{id:'ragingWall',name:'Increvable',desc:"Une fois par combat, la première fois sous 25% PV, réduit les dégâts subis de moitié."}},
+  fighter:{id:'fighter',name:'Guerrier',icon:'⚔️',role:'melee',critBase:0.07,
+    base:{hp:38,ac:14,atk:11,mag:1,spd:11,focus:4},
+    growth:{hp:4,atk:1.5,mag:0},
+    abilities:[
+      {id:'f0',name:'Estoc',kind:'attack',stat:'ATK',power:1.0,melee:true,cost:0,desc:"Attaque de base à l'épée longue."},
+      {id:'f1',name:"Second élan",kind:'attack',stat:'ATK',power:1.0,melee:true,cost:2,twice:true,desc:"Deux frappes rapides (x1.0 chacune)."},
+      {id:'f2',name:'Garde active',kind:'buffSelf',cost:2,effect:{type:'buffAc',amount:5,turns:2},desc:"+5 CA pendant 2 tours."}
+    ],
+    feat:{id:'secondWind',name:'Second souffle',desc:"Sous 30% PV, se soigne de 20% PV max au début de son tour (1x/combat)."}},
+  paladin:{id:'paladin',name:'Paladin',icon:'🛡️',role:'tank',critBase:0.05,
+    base:{hp:42,ac:16,atk:8,mag:6,spd:8,focus:4},
+    growth:{hp:5,atk:0.8,mag:0.7},
+    abilities:[
+      {id:'p0',name:'Masse bénie',kind:'attack',stat:'ATK',power:1.0,melee:true,cost:0,desc:"Attaque de base contondante."},
+      {id:'p1',name:'Châtiment divin',kind:'attack',stat:'ATK',power:1.2,melee:true,cost:2,bonusMag:0.5,desc:"Dégâts physiques + radieux (bonus selon MAG)."},
+      {id:'p2',name:'Imposition des mains',kind:'heal',stat:'MAG',power:2.0,cost:3,cleanse:true,desc:"Soigne un allié et retire un effet néfaste."}
+    ],
+    feat:{id:'auraProtection',name:'Aura de protection',desc:"Tant qu'il est vivant, tout le groupe gagne +2 CA."}},
+  monk:{id:'monk',name:'Moine',icon:'🥋',role:'melee',critBase:0.09,
+    base:{hp:34,ac:15,atk:10,mag:1,spd:14,focus:4},
+    growth:{hp:3.4,atk:1.3,mag:0},
+    abilities:[
+      {id:'m0',name:'Rafale de coups',kind:'attack',stat:'ATK',power:0.6,melee:true,cost:0,twice:true,desc:"Deux coups légers et rapides."},
+      {id:'m1',name:'Frappe étourdissante',kind:'attack',stat:'ATK',power:1.1,melee:true,cost:2,effect:{type:'stun',turns:1,chance:0.6},desc:"Dégâts + 60% de chance d'étourdir 1 tour."},
+      {id:'m2',name:'Défense patiente',kind:'buffSelf',cost:2,effect:{type:'buffAc',amount:6,turns:1},effect2:{type:'dodge',amount:0.5,turns:1},desc:"+6 CA et 50% d'esquive pendant 1 tour."}
+    ],
+    feat:{id:'unarmoredFocus',name:'Concentration sans armure',desc:"+2 CA et +2 VIT passifs."}},
+  rogue:{id:'rogue',name:'Roublard',icon:'🗡️',role:'melee',critBase:0.16,
+    base:{hp:32,ac:14,atk:11,mag:1,spd:13,focus:4},
+    growth:{hp:3.2,atk:1.4,mag:0},
+    abilities:[
+      {id:'r0',name:'Estafilade',kind:'attack',stat:'ATK',power:1.0,melee:true,cost:0,desc:"Attaque de base à la dague."},
+      {id:'r1',name:'Attaque sournoise',kind:'attack',stat:'ATK',power:2.0,melee:true,cost:2,desc:"Coup dévastateur (dégâts x2)."},
+      {id:'r2',name:'Bombe fumigène',kind:'buffSelf',cost:2,effect:{type:'dodge',amount:0.7,turns:2},effect2:{type:'buffSpd',amount:3,turns:2},desc:"70% d'esquive et +3 VIT pendant 2 tours."}
+    ],
+    feat:{id:'uncannyDodge',name:'Esquive surnaturelle',desc:"25% de chance de réduire de moitié tout dégât reçu."}},
+  ranger:{id:'ranger',name:'Rôdeur',icon:'🏹',role:'ranged',critBase:0.10,
+    base:{hp:33,ac:13,atk:11,mag:3,spd:12,focus:4},
+    growth:{hp:3.4,atk:1.3,mag:0.3},
+    abilities:[
+      {id:'ra0',name:'Tir précis',kind:'attack',stat:'ATK',power:1.0,melee:false,cost:0,desc:"Attaque de base à l'arc long."},
+      {id:'ra1',name:'Marque du chasseur',kind:'debuff',cost:2,power:0.6,effect:{type:'markDamage',amount:0.25,turns:3},bonusDmg:0.4,stat:'ATK',desc:"Marque la cible (+25% dégâts subis, 3 tours) et inflige des dégâts."},
+      {id:'ra2',name:'Tir en volée',kind:'aoeAttack',stat:'ATK',power:0.8,melee:false,cost:3,desc:"Frappe tous les ennemis (x0.8 chacun)."}
+    ],
+    feat:{id:'beastCompanion',name:'Compagnon animal',desc:"En début de combat, son compagnon mord l'ennemi le plus faible (dégâts égaux à 50% ATT)."}},
+  bard:{id:'bard',name:'Barde',icon:'🎻',role:'support',critBase:0.06,
+    base:{hp:31,ac:12,atk:6,mag:9,spd:10,focus:5},
+    growth:{hp:3,atk:0.4,mag:1.2},
+    abilities:[
+      {id:'ba0',name:'Insulte cinglante',kind:'attack',stat:'MAG',power:1.0,melee:false,cost:0,desc:"Attaque de base psychique."},
+      {id:'ba1',name:'Ballade inspirante',kind:'buffAll',cost:3,effect:{type:'buffAtk',amount:0.15,turns:2,pct:true},healAllPower:0.5,desc:"+15% ATT à tout le groupe et léger soin collectif."},
+      {id:'ba2',name:'Mots blessants',kind:'debuff',cost:2,stat:'MAG',power:0.4,effect:{type:'debuffAc',amount:4,turns:2},desc:"Dégâts légers et -4 CA à la cible pendant 2 tours."}
+    ],
+    feat:{id:'jackOfAllTrades',name:'Touche-à-tout',desc:"Tant qu'il est vivant, tout le groupe gagne +5% de critique."}},
+  cleric:{id:'cleric',name:'Clerc',icon:'✨',role:'healer',critBase:0.05,
+    base:{hp:32,ac:13,atk:5,mag:11,spd:9,focus:5},
+    growth:{hp:3.2,atk:0.3,mag:1.4},
+    abilities:[
+      {id:'c0',name:'Flamme sacrée',kind:'attack',stat:'MAG',power:1.0,melee:false,cost:0,desc:"Attaque de base radieuse."},
+      {id:'c1',name:'Mot de guérison',kind:'heal',stat:'MAG',power:1.8,cost:2,desc:"Soigne un allié (x1.8 MAG)."},
+      {id:'c2',name:'Soin de masse',kind:'healAll',stat:'MAG',power:1.0,cost:4,desc:"Soigne tout le groupe (x1.0 MAG chacun)."}
+    ],
+    feat:{id:'divineIntervention',name:'Intervention divine',desc:"Une fois par combat, empêche un allié de tomber à 0 PV (le laisse à 1 PV)."}},
+  druid:{id:'druid',name:'Druide',icon:'🌿',role:'caster',critBase:0.06,
+    base:{hp:29,ac:12,atk:5,mag:11,spd:10,focus:5},
+    growth:{hp:2.8,atk:0.3,mag:1.4},
+    abilities:[
+      {id:'d0',name:'Fouet d’épines',kind:'attack',stat:'MAG',power:1.0,melee:false,cost:0,desc:"Attaque de base naturelle."},
+      {id:'d1',name:'Forme d’ours',kind:'buffSelf',cost:3,effect:{type:'buffAtkFromMag',turns:2},effect2:{type:'buffAc',amount:3,turns:2},desc:"Prend forme d'ours : ATT augmente selon MAG, +3 CA (2 tours)."},
+      {id:'d2',name:'Racines entravantes',kind:'debuff',cost:2,effect:{type:'stun',turns:1,chance:0.75},stat:'MAG',power:0.3,desc:"75% de chance d'immobiliser la cible 1 tour."}
+    ],
+    feat:{id:'naturalRecovery',name:'Régénération naturelle',desc:"Se soigne de 5% de ses PV max au début de chacun de ses tours."}},
+  wizard:{id:'wizard',name:'Magicien',icon:'📖',role:'caster',critBase:0.06,
+    base:{hp:26,ac:11,atk:3,mag:13,spd:10,focus:5},
+    growth:{hp:2.4,atk:0.2,mag:1.6},
+    abilities:[
+      {id:'w0',name:'Trait de feu',kind:'attack',stat:'MAG',power:1.0,melee:false,cost:0,desc:"Attaque de base arcanique."},
+      {id:'w1',name:'Boule de feu',kind:'aoeAttack',stat:'MAG',power:0.9,melee:false,cost:3,desc:"Brûle tous les ennemis (x0.9 chacun)."},
+      {id:'w2',name:'Ralentissement',kind:'debuff',cost:2,effect:{type:'debuffSpd',amount:4,turns:2},effect2:{type:'debuffAc',amount:2,turns:2},desc:"-4 VIT et -2 CA à la cible pendant 2 tours."}
+    ],
+    feat:{id:'arcaneRecovery',name:'Récupération arcanique',desc:"Régénère 1 point de concentration supplémentaire par tour."}},
+  sorcerer:{id:'sorcerer',name:'Ensorceleur',icon:'🔥',role:'caster',critBase:0.08,
+    base:{hp:25,ac:11,atk:3,mag:13,spd:11,focus:5},
+    growth:{hp:2.3,atk:0.2,mag:1.6},
+    abilities:[
+      {id:'s0',name:'Rayon du chaos',kind:'attack',stat:'MAG',power:1.0,melee:false,cost:0,desc:"Attaque de base chaotique."},
+      {id:'s1',name:'Explosion sauvage',kind:'attack',stat:'MAG',power:2.2,melee:false,cost:3,desc:"Déflagration arcanique dévastatrice (x2.2)."},
+      {id:'s2',name:'Bouclier prompt',kind:'shieldSelf',cost:2,power:1.0,stat:'MAG',desc:"Absorbe des dégâts égaux à MAG pendant 2 tours."}
+    ],
+    feat:{id:'metamagic',name:'Métamagie',desc:"15% de chance qu'un sort ne coûte aucune concentration."}},
+  warlock:{id:'warlock',name:'Occultiste',icon:'👁️',role:'caster',critBase:0.07,
+    base:{hp:29,ac:11,atk:4,mag:12,spd:9,focus:5},
+    growth:{hp:2.9,atk:0.3,mag:1.5},
+    abilities:[
+      {id:'wl0',name:'Rayon occulte',kind:'attack',stat:'MAG',power:1.0,melee:false,cost:0,desc:"Attaque de base ténébreuse."},
+      {id:'wl1',name:'Hex',kind:'attack',stat:'MAG',power:0.5,melee:false,cost:2,effect:{type:'weaken',amount:0.25,turns:3},desc:"Dégâts + affaiblit la cible (-25% dégâts infligés, 3 tours)."},
+      {id:'wl2',name:'Pacte sombre',kind:'attack',stat:'MAG',power:1.6,melee:false,cost:3,lifesteal:0.4,desc:"Dégâts x1.6, vole 40% en PV."}
+    ],
+    feat:{id:'fiendishResilience',name:'Résilience infernale',desc:"+10% de PV max passif."}},
+  artificer:{id:'artificer',name:'Artificier',icon:'⚙️',role:'support',critBase:0.06,
+    base:{hp:33,ac:13,atk:6,mag:9,spd:9,focus:5},
+    growth:{hp:3.3,atk:0.5,mag:1.1},
+    abilities:[
+      {id:'ar0',name:'Décharge',kind:'attack',stat:'MAG',power:1.0,melee:false,cost:0,desc:"Attaque de base électrique."},
+      {id:'ar1',name:'Infusion réparatrice',kind:'heal',stat:'MAG',power:1.4,cost:2,effect:{type:'buffAc',amount:2,turns:2,onTarget:true},desc:"Soigne un allié et +2 CA pendant 2 tours."},
+      {id:'ar2',name:'Tourelle déployée',kind:'attack',stat:'MAG',power:1.2,melee:false,cost:3,effect:{type:'buffAtkSelf',amount:2,turns:99},effect2:{type:'buffMagSelf',amount:2,turns:99},desc:"Dégâts + tourelle permanente : +2 ATT/MAG pour le reste du combat."}
+    ],
+    feat:{id:'flashOfGenius',name:'Éclair de génie',desc:"Tant qu'il est vivant, tout le groupe gagne +2 CA."}}
+};
+var CLASS_LIST = Object.keys(CLASSES);
+var ROLE_NAMES = {tank:'Rempart',melee:'Guerrier',ranged:'Tireur',healer:'Soigneur',support:'Soutien',caster:'Lanceur de sorts'};
+
+/* ============================= DATA: ENEMIES ============================= */
+function mkAtk(name,power,opts){opts=opts||{};return Object.assign({id:name,name:name,kind:'attack',stat:opts.stat||'ATK',power:power,melee:opts.melee!==false,cooldown:opts.cooldown||0,target:opts.target||'single'},opts);}
+var ENEMY_DEFS = {
+  goblin:{name:'Gobelin éclaireur',icon:'👺',melee:true,hp:17,atk:6,mag:0,ac:10,spd:12,gold:8,xp:9,
+    specials:[{id:'gb1',name:'Volée de dagues',kind:'aoeAttack',stat:'ATK',power:0.55,melee:false,cooldown:3}]},
+  skeleton:{name:'Squelette guerrier',icon:'💀',melee:true,hp:21,atk:7,mag:0,ac:12,spd:8,gold:9,xp:10,
+    specials:[{id:'sk1',name:'Frappe brisée',kind:'attack',stat:'ATK',power:1.4,melee:true,cooldown:2}]},
+  orc:{name:'Orc brutal',icon:'👹',melee:true,hp:29,atk:9,mag:0,ac:11,spd:9,gold:11,xp:13,
+    specials:[{id:'or1',name:'Coup dévastateur',kind:'attack',stat:'ATK',power:1.8,melee:true,cooldown:3}]},
+  wolf:{name:'Loup sanguinaire',icon:'🐺',melee:true,hp:19,atk:8,mag:0,ac:9,spd:14,gold:9,xp:11,
+    specials:[{id:'wf1',name:'Morsure féroce',kind:'attack',stat:'ATK',power:1.3,melee:true,cooldown:2,lifesteal:0.3}]},
+  cultist:{name:'Cultiste',icon:'📿',melee:false,hp:15,atk:2,mag:8,ac:9,spd:10,gold:10,xp:11,
+    specials:[{id:'cu1',name:'Malédiction',kind:'debuff',stat:'MAG',power:0.3,melee:false,cooldown:3,effect:{type:'debuffAtk',amount:3,turns:3}}]},
+  ogre:{name:'Ogre',icon:'🧌',melee:true,hp:42,atk:11,mag:0,ac:12,spd:6,gold:15,xp:17,
+    specials:[{id:'og1',name:'Écrasement',kind:'aoeAttack',stat:'ATK',power:0.9,melee:true,cooldown:4}]},
+  wraith:{name:'Spectre',icon:'👻',melee:false,hp:23,atk:2,mag:9,ac:10,spd:12,gold:12,xp:14,
+    specials:[{id:'wr1',name:'Toucher glacial',kind:'attack',stat:'MAG',power:1.5,melee:false,cooldown:3,effect:{type:'debuffSpd',amount:3,turns:2}}]},
+  cube:{name:'Cube gélatineux',icon:'🟩',melee:true,hp:36,atk:6,mag:0,ac:8,spd:4,gold:12,xp:14,
+    specials:[{id:'cb1',name:'Corrosion',kind:'attack',stat:'ATK',power:1.1,melee:true,cooldown:3,effect:{type:'debuffAc',amount:2,turns:3}}]},
+  bandit:{name:'Bandit',icon:'🥷',melee:true,hp:20,atk:8,mag:0,ac:11,spd:13,gold:13,xp:13,
+    specials:[{id:'bn1',name:'Coup sournois',kind:'attack',stat:'ATK',power:1.7,melee:true,cooldown:3}]},
+  harpy:{name:'Harpie',icon:'🦅',melee:false,hp:18,atk:7,mag:0,ac:9,spd:15,gold:11,xp:13,
+    specials:[{id:'hp1',name:'Cri strident',kind:'debuff',target:'all',melee:false,cooldown:4,effect:{type:'debuffSpd',amount:2,turns:2}}]},
+  armor:{name:'Armure animée',icon:'🧿',melee:true,hp:27,atk:9,mag:0,ac:15,spd:7,gold:14,xp:15,
+    specials:[{id:'am1',name:'Choc métallique',kind:'attack',stat:'ATK',power:1.3,melee:true,cooldown:2}]},
+  acolyte:{name:'Acolyte des ténèbres',icon:'🔮',melee:false,hp:17,atk:2,mag:7,ac:9,spd:10,gold:11,xp:12,
+    specials:[{id:'ac1',name:'Drain de vie',kind:'attack',stat:'MAG',power:1.2,melee:false,cooldown:3,lifesteal:0.5}]}
+};
+var ELITE_DEF = {name:'Ogre fossoyeur',icon:'🪦',melee:true,hp:78,atk:13,mag:0,ac:13,spd:8,gold:34,xp:38,elite:true,
+  specials:[
+    {id:'el1',name:'Fracas tellurique',kind:'aoeAttack',stat:'ATK',power:1.0,melee:true,cooldown:3},
+    {id:'el2',name:'Regain macabre',kind:'heal',target:'self',melee:false,cooldown:4,selfHealPct:0.15}
+  ]};
+var BOSS_DEF = {name:'Vouivre de Cendre',icon:'🐉',melee:false,hp:115,atk:9,mag:12,ac:15,spd:10,gold:90,xp:120,boss:true,
+  specials:[
+    {id:'bo1',name:'Souffle de cendres',kind:'aoeAttack',stat:'MAG',power:1.1,melee:false,cooldown:3},
+    {id:'bo2',name:'Griffure ardente',kind:'attack',stat:'ATK',power:1.8,melee:true,cooldown:2},
+    {id:'bo3',name:'Rugissement',kind:'debuff',target:'all',melee:false,cooldown:4,effect:{type:'debuffAc',amount:3,turns:3}}
+  ]};
+
+/* ============================= DATA: ITEMS ============================= */
+var SPECIAL_ITEMS = [
+  {id:'blade_vanguard',name:"Lame de l'Avant-Garde",slot:'weapon',rarity:'epic',icon:'🗡️',base:{atk:8},cond:'roleTank',condBonus:{ac:4},synText:"+4 CA supplémentaire si porté par un Rempart.",value:70},
+  {id:'robe_arcane',name:"Robe du Cercle Arcanique",slot:'armor',rarity:'epic',icon:'🥼',base:{ac:6,mag:6},cond:'twoOtherCasters',aura:{mag:3},synText:"Aura : +3 MAG au groupe si 2+ autres lanceurs de sorts sont actifs.",value:75},
+  {id:'symbol_ardenvale',name:"Symbole Sacré d'Ardenvale",slot:'trinket',rarity:'epic',icon:'🔆',base:{mag:4},cond:'isHealerClass',healMult:0.3,synText:"+30% de soins prodigués si porté par un Clerc ou un Paladin.",value:65},
+  {id:'fangs_vamp',name:'Crocs Vampiriques',slot:'weapon',rarity:'rare',icon:'🦷',base:{atk:5},lifesteal:0.15,synText:"Vol de vie 15% sur toutes les attaques.",value:45},
+  {id:'belt_berserker',name:'Ceinture du Berserker',slot:'armor',rarity:'rare',icon:'🥋',base:{hp:8},lowHpAtkBonus:0.25,synText:"+25% ATT/MAG tant que le porteur est sous 50% PV.",value:42},
+  {id:'cloak_shadows',name:'Cape des Ombres',slot:'trinket',rarity:'rare',icon:'🧥',base:{spd:3},critBonus:0.08,synText:"+8% de critique.",value:40},
+  {id:'ring_spellstoring',name:'Anneau du Sortilège',slot:'trinket',rarity:'epic',icon:'💍',base:{focus:2},synText:"+2 concentration maximum.",value:60},
+  {id:'tome_secrets',name:'Grimoire des Secrets Anciens',slot:'weapon',rarity:'epic',icon:'📕',base:{mag:8,focus:1},synText:"+1 concentration maximum.",value:68},
+  {id:'amulet_fellowship',name:'Amulette de Fraternité',slot:'trinket',rarity:'rare',icon:'📿',base:{},cond:'isSupportClass',aura:{spd:2},synText:"Aura : +2 VIT au groupe si porté par un Soutien ou Soigneur.",value:44},
+  {id:'shield_rampart',name:'Bouclier du Rempart',slot:'armor',rarity:'rare',icon:'🛡️',base:{ac:5},cond:'roleTank',aura:{ac:2},synText:"Aura : +2 CA au groupe si porté par un Rempart.",value:46}
+];
+var FILLER_NAMES = {
+  weapon:['Épée courte','Hache ébréchée','Bâton noueux','Dague affûtée','Arc renforcé','Masse cloutée','Rapière fine'],
+  armor:['Veste de cuir','Cotte de mailles','Bouclier rond','Robe matelassée','Plastron rouillé','Cape épaisse'],
+  trinket:['Breloque porte-bonheur','Pierre de jade','Plume légère','Fiole scintillante','Anneau simple','Grelot d’argent']
+};
+var ITEM_ICONS = {weapon:'⚔️',armor:'🛡️',trinket:'💠'};
+var RARITY_MULT = {common:1,rare:1.7,epic:2.6};
+var RARITY_VALUE = {common:18,rare:38,epic:65};
+var itemUidCounter = 1;
+
+function generateFillerItem(slot,rarity){
+  var names = FILLER_NAMES[slot];
+  var name = names[Math.floor(Math.random()*names.length)];
+  var mult = RARITY_MULT[rarity];
+  var base = {};
+  if(slot==='weapon'){
+    if(Math.random()<0.5) base.atk = Math.round(3*mult); else base.mag = Math.round(3*mult);
+  } else if(slot==='armor'){
+    if(Math.random()<0.5){base.ac = Math.round(2*mult);} else {base.hp = Math.round(5*mult);}
+    if(rarity!=='common') base.hp = Math.round(4*mult);
+  } else {
+    var r = Math.random();
+    if(r<0.34) base.spd = Math.round(2*mult);
+    else if(r<0.67) base.focus = rarity==='common'?0:1;
+    else base.critBonus = 0.03*mult;
+  }
+  return {id:'fill_'+(itemUidCounter++),name:name,slot:slot,rarity:rarity,icon:ITEM_ICONS[slot],base:base,value:RARITY_VALUE[rarity]};
+}
+function rollRarity(weightBonus){
+  var r = Math.random() - (weightBonus||0);
+  if(r<0.12) return 'epic';
+  if(r<0.45) return 'rare';
+  return 'common';
+}
+function rollLootItem(guaranteedMin){
+  var rarity = rollRarity(guaranteedMin==='epic'?0.9:guaranteedMin==='rare'?0.55:0);
+  if(guaranteedMin==='epic') rarity='epic';
+  if(guaranteedMin==='rare' && rarity==='common') rarity='rare';
+  if(Math.random()<0.22){
+    var pool = SPECIAL_ITEMS.filter(function(it){return it.rarity===rarity;});
+    if(pool.length) return Object.assign({},pool[Math.floor(Math.random()*pool.length)]);
+  }
+  var slots=['weapon','armor','trinket'];
+  var slot = slots[Math.floor(Math.random()*slots.length)];
+  return generateFillerItem(slot,rarity);
+}
+
+/* ============================= DATA: TALENTS ============================= */
+var TALENT_POOL = [
+  {id:'t_hp',name:'Vitalité',desc:'+6 PV maximum',stat:'hp',amount:6},
+  {id:'t_atk',name:'Vigueur',desc:'+3 Attaque',stat:'atk',amount:3},
+  {id:'t_mag',name:'Intellect',desc:'+3 Magie',stat:'mag',amount:3},
+  {id:'t_spd',name:'Célérité',desc:'+2 Vitesse',stat:'spd',amount:2},
+  {id:'t_ac',name:'Peau de fer',desc:'+2 Classe d’Armure',stat:'ac',amount:2},
+  {id:'t_focus',name:'Discipline',desc:'+1 Concentration max',stat:'focus',amount:1},
+  {id:'t_crit',name:'Instinct tueur',desc:'+5% de critique',stat:'crit',amount:0.05}
+];
+
+/* ============================= DATA: EVENTS ============================= */
+function pickRandomActiveUid(state){var au=activeUnits(state);return au.length?au[Math.floor(Math.random()*au.length)].classId:null;}
+var EVENTS = [
+  {id:'ev_altar',title:"L'Autel Oublié",text:"Un autel de pierre couvert de mousse pulse d'une faible lumière ambrée. Vous sentez une présence ancienne, indécise entre bénédiction et malédiction.",
+   options:[
+     {label:'Prier devant l’autel',sub:'Risqué',run:function(state){
+        if(Math.random()<0.55){ activeUnits(state).forEach(function(u){u.hp=getStats(u,state).hp;}); state.runBuffs.push({stat:'ac',amount:2,combatsLeft:3}); return "Une chaleur bienfaisante vous parcourt. Groupe entièrement soigné, +2 CA pendant 3 combats.";}
+        else { state.runBuffs.push({stat:'hpPct',amount:-0.15,combatsLeft:2}); return "L'autel se referme dans un souffle glacial. Vous vous sentez affaiblis (-15% PV max, 2 combats).";}
+     }},
+     {label:'Déposer une offrande (10 or)',cost:10,run:function(state){ state.gold-=10; activeUnits(state).forEach(function(u){var st=getStats(u,state); u.hp=Math.min(st.hp,u.hp+Math.round(st.hp*0.25));}); return "L'autel accepte l'offrande. Le groupe récupère un peu de vitalité.";}},
+     {label:'Repartir',run:function(){return "Vous laissez l'autel à son silence.";}}
+   ]},
+  {id:'ev_merchant',title:'Le Marchand Blessé',text:"Un marchand ambulant gît contre un pilier, une plaie au flanc. Son chariot renversé déborde de babioles.",
+   options:[
+     {label:'Soigner ses blessures',sub:'Risque d’embuscade',run:function(state){
+        if(Math.random()<0.3){ state.pendingAmbush=true; return "Alors que vous le soignez, des pillards jaillissent de l'ombre !";}
+        state.gold+=28; var it=rollLootItem(); state.inventory.push(it); return "Reconnaissant, il vous offre "+state.gold+" po cumulés et "+it.name+".";
+     }},
+     {label:'Fouiller le chariot sans un mot',run:function(state){ state.gold+=15; return "Vous récupérez 15 po dans le chariot renversé.";}},
+     {label:'Continuer votre chemin',run:function(){return "Vous laissez le marchand à son sort.";}}
+   ]},
+  {id:'ev_grove',title:'Sanctuaire Sylvestre',text:"Une clairière baignée de lumière verte. Des esprits de la forêt observent votre groupe sans hostilité.",
+   options:[
+     {label:'Se reposer parmi les fleurs',run:function(state){ activeUnits(state).forEach(function(u){var st=getStats(u,state); u.hp=Math.min(st.hp,u.hp+Math.round(st.hp*0.2));}); return "Un repos paisible restaure 20% des PV du groupe.";}},
+     {label:'Communier avec l’esprit sylvestre',run:function(state){
+        var cid = pickRandomActiveUid(state); if(!cid) return "Il n'y a personne pour communier.";
+        var u = state.roster[cid]; var stats=['atk','mag','spd','ac']; var s=stats[Math.floor(Math.random()*stats.length)];
+        u.talents.push({id:'grove_'+Date.now(),name:'Don sylvestre',desc:'+2 '+s,stat:s,amount:2});
+        return CLASSES[cid].name+" reçoit un don de la forêt (+2 "+s.toUpperCase()+" permanent).";
+     }}
+   ]},
+  {id:'ev_wanderer',title:'Aventurier Solitaire',text:"Un·e aventurier·ère esseulé·e campe près du chemin, prêt·e à se joindre à quiconque le mérite.",
+   options:[
+     {label:'L’inviter à rejoindre la troupe',run:function(state){
+        var avail = CLASS_LIST.filter(function(c){return !state.roster[c];});
+        if(Object.keys(state.roster).length>=6 || !avail.length) return "Il n'y a plus de place dans votre troupe.";
+        var cid = avail[Math.floor(Math.random()*avail.length)];
+        var lvl = Math.max(1, Math.round(avgActiveLevel(state))-1);
+        state.roster[cid] = makeUnit(cid, lvl);
+        return CLASSES[cid].name+" rejoint votre troupe (niveau "+lvl+"), en réserve.";
+     }},
+     {label:'Le’la laisser suivre sa route',run:function(){return "Vous poursuivez seuls votre expédition.";}}
+   ]},
+  {id:'ev_chest',title:'Trésor Piégé',text:"Un coffre serti d'or repose au centre d'une pièce circulaire. Des rainures suspectes courent sur le couvercle.",
+   options:[
+     {label:'Ouvrir le coffre',sub:'Risqué',run:function(state){
+        if(Math.random()<0.5){ var it=rollLootItem('rare'); state.inventory.push(it); state.gold+=20; return "Le coffre était honnête ! Vous obtenez "+it.name+" et 20 po.";}
+        var cid = pickRandomActiveUid(state); if(cid){var u=state.roster[cid]; u.hp=Math.max(1,Math.round(u.hp*0.6));}
+        return "Un mécanisme se déclenche ! "+(cid?CLASSES[cid].name+" encaisse une décharge et perd des PV.":"");
+     }},
+     {label:'Crocheter prudemment',sub:'Nécessite un Roublard actif',need:function(state){return !!activeUnits(state).find(function(u){return u.classId==='rogue';});},run:function(state){ var it=rollLootItem('rare'); state.inventory.push(it); state.gold+=15; return "Votre Roublard désamorce le piège sans peine. Vous obtenez "+it.name+" et 15 po.";}},
+     {label:'Laisser le coffre',run:function(){return "Prudence avant tout.";}}
+   ]},
+  {id:'ev_pact',title:'Cercle de Sang',text:"Un cercle rituel tracé à même la pierre irradie d'une énergie trouble. Un pacte se propose, silencieux.",
+   options:[
+     {label:'Sceller le pacte',run:function(state){ var it=rollLootItem('rare'); state.inventory.push(it); state.gold+=18; state.runBuffs.push({stat:'ac',amount:-2,combatsLeft:2}); return "Le pacte est scellé : "+it.name+" et 18 po, mais le groupe est affaibli (-2 CA, 2 combats).";}},
+     {label:'Refuser et partir',run:function(){return "Vous quittez ce lieu sans vous retourner.";}}
+   ]},
+  {id:'ev_library',title:'Bibliothèque Abandonnée',text:"Des étagères croulent sous des grimoires poussiéreux, certains encore lisibles à la lueur de votre torche.",
+   options:[
+     {label:'Étudier les tomes',run:function(state){
+        var au=activeUnits(state); var casters=au.filter(function(u){var r=CLASSES[u.classId].role; return r==='caster'||r==='support'||r==='healer';});
+        var pool = casters.length?casters:au;
+        if(!pool.length) return "Il n'y a personne pour étudier.";
+        var u = pool[Math.floor(Math.random()*pool.length)];
+        u.talents.push({id:'lib_'+Date.now(),name:'Savoir ancien',desc:'+1 concentration max',stat:'focus',amount:1});
+        return CLASSES[u.classId].name+" approfondit son art (+1 concentration max permanent).";
+     }},
+     {label:'Chercher de l’or plutôt',run:function(state){ state.gold+=14; return "Vous trouvez 14 po glissés entre les pages.";}}
+   ]},
+  {id:'ev_fountain',title:'Fontaine Bénite',text:"Une fontaine de marbre blanc déverse une eau d'une pureté surnaturelle.",
+   options:[
+     {label:'Boire à la fontaine',run:function(state){ activeUnits(state).forEach(function(u){u.hp=getStats(u,state).hp;}); return "L'eau sacrée soigne entièrement le groupe.";}},
+     {label:'Remplir une fiole',run:function(state){ state.consumables.elixir=(state.consumables.elixir||0)+1; return "Vous emportez une fiole d'eau bénite (+1 Élixir de vigueur).";}}
+   ]},
+  {id:'ev_duel',title:"Duel d'Honneur",text:"Un champion errant vous barre la route et propose un duel loyal, arme au clair.",
+   options:[
+     {label:'Accepter le duel',run:function(state){ state.forcedEncounter='champion'; return "Le champion salue votre courage et se met en garde.";}},
+     {label:'Décliner poliment',run:function(state){ state.gold+=10; return "Le champion respecte votre prudence et vous laisse 10 po de vivres.";}}
+   ]}
+];
+
+/* ============================= UNIT / STATS HELPERS ============================= */
+function makeUnit(classId, level){
+  return {classId:classId, level:level||1, xp:0, hp:null, focus:0, equip:{weapon:null,armor:null,trinket:null}, talents:[], slot:null};
+}
+function activeUnits(state){
+  return Object.values(state.roster).filter(function(u){return u.slot!=null;}).sort(function(a,b){return a.slot-b.slot;});
+}
+function benchUnits(state){ return Object.values(state.roster).filter(function(u){return u.slot==null;}); }
+function avgActiveLevel(state){ var au=activeUnits(state); if(!au.length) return 1; return au.reduce(function(s,u){return s+u.level;},0)/au.length; }
+function hasFeat(u,featId){ return u && u.classId && CLASSES[u.classId].feat.id===featId; }
+function xpToNext(level){ return 20 + (level-1)*15; }
+
+function computeRoleSynergy(party){
+  var counts={};
+  party.forEach(function(u){ var r=CLASSES[u.classId].role; counts[r]=(counts[r]||0)+1; });
+  var syn = {atkPct:0,magPct:0,acFlat:0,healPct:0,firstStrike:false,allPct:0,lines:[]};
+  if((counts.tank||0)>=2){ syn.acFlat+=8; syn.lines.push('Rempart uni : +8 CA au groupe (2+ Remparts).'); }
+  if(((counts.healer||0)+(counts.support||0))>=2){ syn.healPct+=0.15; syn.lines.push('Sanctuaire : soins +15% (2+ Soigneurs/Soutiens).'); }
+  if((counts.caster||0)>=3){ syn.magPct+=0.15; syn.acFlat-=5; syn.lines.push('Confluence Arcanique : dégâts magiques +15%, -5 CA (3+ Lanceurs de sorts).'); }
+  if((counts.melee||0)>=2){ syn.atkPct+=0.10; syn.lines.push('Bande de Guerre : dégâts physiques +10% (2+ Guerriers).'); }
+  if((counts.ranged||0)>=2){ syn.firstStrike=true; syn.lines.push('Volée : le groupe agit en premier au round 1 (2+ Tireurs).'); }
+  var distinctRoles = Object.keys(counts).length;
+  if(party.length===4 && distinctRoles===4){ syn.allPct+=0.05; syn.lines.push('Avant-Garde Équilibrée : tous les rôles distincts, +5% à toutes les statistiques.'); }
+  return syn;
+}
+function itemMeetsCond(cond, owner, party){
+  if(!cond) return true;
+  var role = CLASSES[owner.classId].role;
+  if(cond==='roleTank') return role==='tank';
+  if(cond==='isHealerClass') return owner.classId==='cleric' || owner.classId==='paladin';
+  if(cond==='isSupportClass') return role==='support' || role==='healer';
+  if(cond==='twoOtherCasters') return party.filter(function(p){return p.classId!==owner.classId && CLASSES[p.classId].role==='caster';}).length>=2;
+  return false;
+}
+function runBuffTotal(state, statName){
+  var t=0; (state.runBuffs||[]).forEach(function(b){ if(b.stat===statName) t+=b.amount; });
+  return t;
+}
+function getStats(unit, state){
+  var cls = CLASSES[unit.classId];
+  var lvl = unit.level;
+  var hp = cls.base.hp + cls.growth.hp*(lvl-1);
+  var atk = cls.base.atk + cls.growth.atk*(lvl-1);
+  var mag = cls.base.mag + cls.growth.mag*(lvl-1);
+  var ac = cls.base.ac + 0.3*(lvl-1);
+  var spd = cls.base.spd + 0.2*(lvl-1);
+  var focus = cls.base.focus + Math.floor((lvl-1)/3);
+  var crit = cls.critBase;
+  var party = activeUnits(state);
+
+  unit.talents.forEach(function(t){
+    if(t.stat==='hp') hp+=t.amount; else if(t.stat==='atk') atk+=t.amount; else if(t.stat==='mag') mag+=t.amount;
+    else if(t.stat==='ac') ac+=t.amount; else if(t.stat==='spd') spd+=t.amount; else if(t.stat==='focus') focus+=t.amount; else if(t.stat==='crit') crit+=t.amount;
+  });
+
+  var auraAc=0, auraSpd=0, auraMag=0, auraAtk=0;
+  ['weapon','armor','trinket'].forEach(function(slotName){
+    var it = unit.equip[slotName]; if(!it) return;
+    if(it.base){
+      if(it.base.hp) hp+=it.base.hp; if(it.base.atk) atk+=it.base.atk; if(it.base.mag) mag+=it.base.mag;
+      if(it.base.ac) ac+=it.base.ac; if(it.base.spd) spd+=it.base.spd; if(it.base.focus) focus+=it.base.focus; if(it.base.critBonus) crit+=it.base.critBonus;
+    }
+    if(it.critBonus) crit+=it.critBonus;
+    if(it.cond && itemMeetsCond(it.cond, unit, party) && it.condBonus){
+      if(it.condBonus.ac) ac+=it.condBonus.ac; if(it.condBonus.atk) atk+=it.condBonus.atk; if(it.condBonus.mag) mag+=it.condBonus.mag; if(it.condBonus.hp) hp+=it.condBonus.hp;
+    }
+    if(it.lowHpAtkBonus && unit.hp!=null){
+      var ratio = unit.hp / Math.max(1,hp);
+      if(ratio < 0.5){ atk*= (1+it.lowHpAtkBonus); mag*=(1+it.lowHpAtkBonus); }
+    }
+  });
+  party.forEach(function(p){
+    ['weapon','armor','trinket'].forEach(function(slotName){
+      var it = p.equip[slotName]; if(!it || !it.aura) return;
+      if(itemMeetsCond(it.cond, p, party)){
+        if(it.aura.ac) auraAc+=it.aura.ac; if(it.aura.spd) auraSpd+=it.aura.spd; if(it.aura.mag) auraMag+=it.aura.mag; if(it.aura.atk) auraAtk+=it.aura.atk;
+      }
+    });
+    if(p.classId!==unit.classId || party.length===1){
+      if(hasFeat(p,'auraProtection') && (p.hp==null || p.hp>0)) auraAc+=2;
+      if(hasFeat(p,'flashOfGenius') && (p.hp==null || p.hp>0)) auraAc+=2;
+      if(hasFeat(p,'jackOfAllTrades') && (p.hp==null || p.hp>0)) crit+=0.03;
+    }
+  });
+  if(hasFeat(unit,'auraProtection')) auraAc+=2;
+  if(hasFeat(unit,'flashOfGenius')) auraAc+=2;
+  if(hasFeat(unit,'jackOfAllTrades')) crit+=0.03;
+  if(hasFeat(unit,'fiendishResilience')) hp*=1.10;
+  ac += auraAc; spd += auraSpd; mag += auraMag; atk += auraAtk;
+
+  var syn = computeRoleSynergy(party);
+  atk *= (1+syn.atkPct+syn.allPct); mag *= (1+syn.magPct+syn.allPct); ac += syn.acFlat; ac*=(1+syn.allPct); spd*=(1+syn.allPct); hp*=(1+syn.allPct);
+
+  hp += runBuffTotal(state,'hp');
+  ac += runBuffTotal(state,'ac');
+  var hpPctBuff = runBuffTotal(state,'hpPct');
+  hp *= (1+hpPctBuff);
+
+  return {hp:Math.max(1,Math.round(hp)), ac:Math.round(ac*10)/10, atk:Math.round(atk*10)/10, mag:Math.round(mag*10)/10, spd:Math.round(spd*10)/10, focus:focus, crit:Math.min(0.6,crit), healPct:syn.healPct};
+}
+
+/* ============================= GAME STATE ============================= */
+var state = null;
+function loadMeta(){
+  try{ return JSON.parse(localStorage.getItem('crypte13_meta')) || {ngPlus:0,bestFloor:0}; }catch(e){ return {ngPlus:0,bestFloor:0}; }
+}
+function saveMeta(m){ try{ localStorage.setItem('crypte13_meta', JSON.stringify(m)); }catch(e){} }
+function saveGame(){ try{ localStorage.setItem('crypte13_save', JSON.stringify(state)); }catch(e){} }
+function loadGame(){ try{ var s=JSON.parse(localStorage.getItem('crypte13_save')); return s; }catch(e){ return null; } }
+function clearSave(){ try{ localStorage.removeItem('crypte13_save'); }catch(e){} }
+
+function newState(){
+  return {
+    view:'TITLE', roster:{}, inventory:[], gold:40, consumables:{healPotion:1,elixir:0},
+    floor:0, mapNodes:null, currentNodeId:null, runBuffs:[], meta:loadMeta(),
+    ngPlus:loadMeta().ngPlus, combat:null, screen:{}, buildPicks:[], forcedEncounter:null, pendingAmbush:false
+  };
+}
+
+/* ============================= MAP GENERATION ============================= */
+var NODE_ICONS = {combat:'⚔️',elite:'🪦',merchant:'🛒',event:'❔',camp:'🏕️',boss:'🐉'};
+function genMap(){
+  var layerCount = 7;
+  var layers = [];
+  for(var i=0;i<layerCount;i++){
+    var n = (i===0)?2:(i===layerCount-1?1:(2+Math.floor(Math.random()*2)));
+    var nodes=[];
+    for(var j=0;j<n;j++){ nodes.push({id:'n'+i+'_'+j, layer:i, idx:j, type:null, visited:false, connections:[]}); }
+    layers.push(nodes);
+  }
+  for(i=0;i<layerCount-1;i++){
+    var cur=layers[i], next=layers[i+1];
+    cur.forEach(function(node){
+      var target = Math.min(next.length-1, Math.round(node.idx/(Math.max(1,cur.length-1))*(next.length-1)));
+      node.connections.push(next[target].id);
+      if(Math.random()<0.5 && next.length>1){
+        var alt = Math.max(0, Math.min(next.length-1, target + (Math.random()<0.5?-1:1)));
+        if(next[alt] && node.connections.indexOf(next[alt].id)===-1) node.connections.push(next[alt].id);
+      }
+    });
+    next.forEach(function(nd){
+      var hasIncoming = cur.some(function(c){return c.connections.indexOf(nd.id)!==-1;});
+      if(!hasIncoming){ var from = cur[Math.floor(Math.random()*cur.length)]; from.connections.push(nd.id); }
+    });
+  }
+  layers[0].forEach(function(n){n.type='combat';});
+  layers[layerCount-1][0].type='boss';
+  var midTypes=[];
+  for(i=1;i<layerCount-1;i++){
+    layers[i].forEach(function(n){
+      if(i===layerCount-2 && midTypes.indexOf('camp')===-1 && Math.random()<0.7){ n.type='camp'; midTypes.push('camp'); return; }
+      var r=Math.random();
+      var t = r<0.48?'combat': r<0.60?'elite': r<0.75?'merchant': r<0.93?'event':'camp';
+      n.type=t; midTypes.push(t);
+    });
+  }
+  ['merchant','event','camp'].forEach(function(need){
+    if(midTypes.indexOf(need)===-1){
+      var candidates=[];
+      for(i=1;i<layerCount-2;i++) layers[i].forEach(function(n){ if(n.type==='combat') candidates.push(n); });
+      if(candidates.length){ candidates[Math.floor(Math.random()*candidates.length)].type=need; }
+    }
+  });
+  var all=[]; layers.forEach(function(l){ l.forEach(function(n){ all.push(n); }); });
+  var byId={}; all.forEach(function(n){byId[n.id]=n;});
+  return {layers:layers.length, nodes:all, byId:byId};
+}
+function availableNodeIds(){
+  if(!state.currentNodeId){ return state.mapNodes.nodes.filter(function(n){return n.layer===0;}).map(function(n){return n.id;}); }
+  var cur = state.mapNodes.byId[state.currentNodeId];
+  return cur.connections;
+}
+
+/* ============================= COMBAT ENGINE ============================= */
+function spawnEnemyInstance(def, row, idx, floorFactor){
+  var f = floorFactor;
+  return {
+    uid:'e'+idx, name:def.name, icon:def.icon, isEnemy:true, row:row, melee:def.melee,
+    hp:Math.round(def.hp*f), maxHp:Math.round(def.hp*f), ac:Math.round(def.ac + f*1.2),
+    atk:Math.round(def.atk*f), mag:Math.round(def.mag*f), spd:def.spd, focus:0, focusMax:0, crit:0.06,
+    gold:Math.round(def.gold*f), xp:Math.round(def.xp*f),
+    abilities:[{id:'basic',name:'Attaque',kind:'attack',stat:def.mag>def.atk?'MAG':'ATK',power:1.0,melee:def.melee,cooldown:0}]
+      .concat((def.specials||[]).map(function(s){ return Object.assign({},s,{_cd:0}); })),
+    tempEffects:[], usedFeatFlags:{}, elite:!!def.elite, boss:!!def.boss, _enraged:false
+  };
+}
+function buildEnemyGroup(node){
+  var floorIdx = node.layer;
+  var factor = 1 + floorIdx*0.11 + (state.ngPlus||0)*0.2;
+  var group = [];
+  if(node.type==='boss'){ group.push(spawnEnemyInstance(BOSS_DEF,'back',0,factor*1.05)); return group; }
+  if(node.type==='elite'){
+    group.push(spawnEnemyInstance(ELITE_DEF,'front',0,factor*1.08));
+    var keys=Object.keys(ENEMY_DEFS);
+    group.push(spawnEnemyInstance(ENEMY_DEFS[keys[Math.floor(Math.random()*keys.length)]],'back',1,factor*0.8));
+    return group;
+  }
+  if(state.forcedEncounter==='champion'){
+    state.forcedEncounter=null;
+    group.push(spawnEnemyInstance({name:'Champion Errant',icon:'🤺',melee:true,hp:34,atk:10,mag:0,ac:13,spd:12,gold:26,xp:24,specials:[{id:'ch1',name:'Estoc précis',kind:'attack',stat:'ATK',power:1.5,melee:true,cooldown:2}]},'front',0,factor));
+    return group;
+  }
+  var count = 1 + Math.floor(Math.random()*2) + (floorIdx>3?1:0);
+  count = Math.min(count,3);
+  var keys2 = Object.keys(ENEMY_DEFS);
+  for(var i=0;i<count;i++){
+    var def = ENEMY_DEFS[keys2[Math.floor(Math.random()*keys2.length)]];
+    group.push(spawnEnemyInstance(def, i<2?'front':'back', i, factor));
+  }
+  return group;
+}
+function startCombat(node){
+  var enemies = buildEnemyGroup(node);
+  var party = activeUnits(state).map(function(u){
+    var st = getStats(u,state);
+    if(u.hp==null) u.hp = st.hp;
+    u.hp = Math.min(u.hp, st.hp);
+    return {uid:u.classId, isEnemy:false, name:CLASSES[u.classId].name, icon:CLASSES[u.classId].icon, classId:u.classId,
+      row: u.slot<2?'front':'back', hp:u.hp, maxHp:st.hp, ac:st.ac, atk:st.atk, mag:st.mag, spd:st.spd,
+      focus:Math.min(st.focus,1), focusMax:st.focus, crit:st.crit, healPct:st.healPct, level:u.level,
+      tempEffects:[], usedFeatFlags:{}};
+  });
+  state.combat = {enemies:enemies, party:party, queue:[], qIndex:0, round:0, log:[], ended:false, result:null, node:node, awaitingAbility:null, awaitingTarget:null};
+  logMsg("Le combat commence : "+enemies.map(function(e){return e.name;}).join(', ')+" !",'info');
+  var beastUnits = party.filter(function(p){ return hasFeat(state.roster[p.classId],'beastCompanion'); });
+  beastUnits.forEach(function(p){
+    var alive = enemies.filter(function(e){return e.hp>0;});
+    if(alive.length){ var target = alive.reduce(function(a,b){return b.hp<a.hp?b:a;}); var dmg=Math.max(1,Math.round(p.atk*0.5)); target.hp=Math.max(0,target.hp-dmg); logMsg(p.name+" (compagnon animal) mord "+target.name+" pour "+dmg+" dégâts.",'hit'); }
+  });
+  newRound();
+  runQueue();
+}
+function logMsg(text, cls){ state.combat.log.push({text:text, cls:cls||''}); if(state.combat.log.length>80) state.combat.log.shift(); }
+function newRound(){
+  var c = state.combat; c.round++;
+  var all = c.party.concat(c.enemies).filter(function(u){return u.hp>0;});
+  var firstStrike = computeRoleSynergy(activeUnits(state)).firstStrike && c.round===1;
+  all.forEach(function(u){ u._roll = (firstStrike && !u.isEnemy) ? 999 : u.spd + Math.random()*3; });
+  all.sort(function(a,b){return b._roll-a._roll;});
+  c.queue = all.map(function(u){return {uid:u.uid, isEnemy:u.isEnemy};});
+  c.qIndex = 0;
+}
+function findCombatant(uid, isEnemy){
+  var c=state.combat; var list = isEnemy?c.enemies:c.party;
+  return list.find(function(u){return u.uid===uid;});
+}
+function currentActor(){
+  var c=state.combat; if(c.qIndex>=c.queue.length) return null;
+  var ref = c.queue[c.qIndex]; return findCombatant(ref.uid, ref.isEnemy);
+}
+function decayEffects(u){
+  u.tempEffects = u.tempEffects.filter(function(e){ e.turns-=1; return e.turns>0; });
+}
+function effectiveCombatStats(u){
+  var ac=u.ac, atk=u.atk, mag=u.mag, spd=u.spd, dodge=0, stunned=false, weaken=0, markUp=0;
+  u.tempEffects.forEach(function(e){
+    if(e.type==='buffAc'||e.type==='debuffAcTarget') ac+=e.amount;
+    if(e.type==='debuffAc') ac-=e.amount;
+    if(e.type==='buffAtk') atk += e.pct? u.atk*e.amount : e.amount;
+    if(e.type==='debuffAtk') atk-=e.amount;
+    if(e.type==='buffSpd') spd+=e.amount;
+    if(e.type==='debuffSpd') spd-=e.amount;
+    if(e.type==='dodge') dodge=Math.max(dodge,e.amount);
+    if(e.type==='stunActive') stunned=true;
+    if(e.type==='weaken') weaken=Math.max(weaken,e.amount);
+    if(e.type==='markDamage') markUp=Math.max(markUp,e.amount);
+    if(e.type==='buffAtkSelf') atk+=e.amount;
+    if(e.type==='buffMagSelf') mag+=e.amount;
+    if(e.type==='debuffAcSelf') ac-=e.amount;
+    if(e.type==='buffAtkFromMag') atk += u.mag;
+    if(e.type==='shield') {}
+  });
+  return {ac:Math.max(0,ac), atk:Math.max(0,atk), mag:Math.max(0,mag), spd:spd, dodge:dodge, stunned:stunned, weaken:weaken, markUp:markUp};
+}
+function shieldAmount(u){ var s=0; u.tempEffects.forEach(function(e){ if(e.type==='shield') s+=e.remaining; }); return s; }
+function consumeShield(u, dmg){
+  for(var i=0;i<u.tempEffects.length;i++){
+    var e=u.tempEffects[i];
+    if(e.type==='shield' && e.remaining>0){
+      var absorbed = Math.min(e.remaining, dmg);
+      e.remaining -= absorbed; dmg -= absorbed;
+      if(dmg<=0) return 0;
+    }
+  }
+  return dmg;
+}
+function classFeatOwner(uid){ return state.roster ? state.roster[uid] : null; }
+
+function dealDamage(attacker, target, ability, isAoe){
+  if(!target || target.hp<=0) return;
+  var aStats = effectiveCombatStats(attacker);
+  var base = (ability.stat==='MAG'? (attacker.mag+ (attacker.tempEffects||[]).reduce(function(s,e){return s+(e.type==='buffMagSelf'?e.amount:0);},0)) : aStats.atk);
+  var power = ability.power * (isAoe?0.85:1);
+  var dmg = base*power;
+  if(ability.bonusMag) dmg += attacker.mag*ability.bonusMag;
+  if(ability.bonusDmg) dmg += (ability.stat==='MAG'?attacker.mag:aStats.atk)*ability.bonusDmg;
+  dmg *= (0.88+Math.random()*0.24);
+  var attackerWeaken = aStats.weaken;
+  if(attackerWeaken) dmg *= (1-attackerWeaken);
+  var tStats = effectiveCombatStats(target);
+  dmg -= tStats.ac*0.4;
+  if(tStats.markUp) dmg *= (1+tStats.markUp);
+  dmg = Math.max(1, Math.round(dmg));
+  var crit=false;
+  if(Math.random() < attacker.crit){ dmg = Math.round(dmg*1.5); crit=true; }
+  if(Math.random() < tStats.dodge){ logMsg(target.name+" esquive l'attaque de "+attacker.name+" !", 'info'); return; }
+  var featOwner = classFeatOwner(target.uid);
+  if(featOwner && hasFeat(featOwner,'uncannyDodge') && Math.random()<0.25){ dmg=Math.max(1,Math.round(dmg/2)); logMsg(target.name+" atténue le coup (Esquive surnaturelle).",'info'); }
+  if(featOwner && hasFeat(featOwner,'ragingWall') && !target.usedFeatFlags.ragingWall && target.hp>0 && (target.hp-dmg)/target.maxHp<0.25){
+    dmg=Math.round(dmg/2); target.usedFeatFlags.ragingWall=true; logMsg(target.name+" encaisse grâce à sa volonté increvable.",'info');
+  }
+  dmg = consumeShield(target, dmg);
+  target.hp = Math.max(0, target.hp-dmg);
+  logMsg(attacker.name+" utilise "+ability.name+" sur "+target.name+" : "+dmg+" dégâts"+(crit?' (Critique !)':'')+".", 'hit');
+  if(ability.effect) applyEffect(attacker, target, ability.effect, isAoe);
+  if(ability.effect2) applyEffect(attacker, target, ability.effect2, isAoe);
+  if(ability.lifesteal){ attacker.hp = Math.min(attacker.maxHp, attacker.hp + Math.round(dmg*ability.lifesteal)); logMsg(attacker.name+" draine "+Math.round(dmg*ability.lifesteal)+" PV.",'heal'); }
+  if(target.hp<=0){
+    if(featOwner && hasFeat(featOwner,'divineIntervention') && !state.combat._divineUsed){
+      target.hp=1; state.combat._divineUsed=true; logMsg("Intervention divine ! "+target.name+" survit avec 1 PV.",'heal');
+    } else {
+      logMsg(target.name+" s'effondre !", 'info');
+    }
+  }
+}
+function applyEffect(attacker, target, eff, isAoe){
+  if(eff.type==='stun'){
+    if(Math.random()<(eff.chance||1)) target.tempEffects.push({type:'stunActive', turns:(eff.turns||1)+1});
+    return;
+  }
+  if(eff.type==='debuffAcSelf'){ attacker.tempEffects.push({type:'debuffAcSelf', amount:eff.amount, turns:eff.turns+1}); return; }
+  if(eff.type==='buffAtkFromMag'){ attacker.tempEffects.push({type:'buffAtkFromMag', amount:0, turns:eff.turns+1}); return; }
+  if(eff.type==='buffAtkSelf'){ attacker.tempEffects.push({type:'buffAtkSelf', amount:eff.amount, turns:eff.turns+1}); return; }
+  if(eff.type==='buffMagSelf'){ attacker.tempEffects.push({type:'buffMagSelf', amount:eff.amount, turns:eff.turns+1}); return; }
+  if(eff.type==='markDamage'){ target.tempEffects.push({type:'markDamage', amount:eff.amount, turns:eff.turns+1}); return; }
+  if(eff.type==='weaken'){ target.tempEffects.push({type:'weaken', amount:eff.amount, turns:eff.turns+1}); return; }
+  target.tempEffects.push(Object.assign({},eff,{turns:eff.turns+1}));
+}
+function applyHeal(caster, target, ability, isAll){
+  if(!target || target.hp<=0) return;
+  var featOwner = classFeatOwner(caster.uid);
+  var mult = isAll ? (ability.healAllPower||1) : 1;
+  var healPct = caster.healPct||0;
+  if(featOwner && featOwner.equip){
+    ['weapon','armor','trinket'].forEach(function(s){ var it=featOwner.equip[s]; if(it && it.healMult && itemMeetsCond(it.cond, featOwner, activeUnits(state))) healPct += it.healMult; });
+  }
+  var amt = Math.round(caster.mag*(ability.power||1)*mult*(1+healPct));
+  target.hp = Math.min(target.maxHp, target.hp+amt);
+  logMsg(caster.name+" soigne "+target.name+" de "+amt+" PV.", 'heal');
+  if(ability.cleanse){ target.tempEffects = target.tempEffects.filter(function(e){return !['debuffAc','debuffAtk','debuffSpd','stunActive','weaken','markDamage'].includes(e.type);}); logMsg(target.name+" est purifié de ses afflictions.",'heal'); }
+  if(ability.effect && ability.effect.onTarget){ target.tempEffects.push(Object.assign({},ability.effect,{turns:ability.effect.turns+1})); }
+}
+function applyBuff(caster, target, ability, isAll){
+  if(!target || target.hp<=0) return;
+  if(ability.effect) applyEffect(caster, target, ability.effect, false);
+  if(ability.effect2) applyEffect(caster, target, ability.effect2, false);
+  if(ability.healAllPower){ applyHeal(caster, target, {power:ability.healAllPower, stat:'MAG'}, true); }
+  logMsg(target.name+" est renforcé par "+caster.name+" ("+ability.name+").", 'heal');
+}
+function applyShield(caster, ability){
+  var amt = Math.round(caster.mag*(ability.power||1));
+  caster.tempEffects.push({type:'shield', remaining:amt, turns:3});
+  logMsg(caster.name+" invoque un bouclier de "+amt+" PV.", 'heal');
+}
+function performAbility(actor, ability, targetUid){
+  var isEnemyActor = !!actor.isEnemy;
+  var allies = isEnemyActor ? state.combat.enemies : state.combat.party;
+  var foes = isEnemyActor ? state.combat.party : state.combat.enemies;
+  if(ability.kind==='attack') dealDamage(actor, foes.find(function(f){return f.uid===targetUid;}), ability, false);
+  else if(ability.kind==='aoeAttack') foes.filter(function(f){return f.hp>0;}).forEach(function(f){dealDamage(actor,f,ability,true);});
+  else if(ability.kind==='heal') applyHeal(actor, allies.find(function(a){return a.uid===targetUid;}), ability, false);
+  else if(ability.kind==='healAll') allies.filter(function(a){return a.hp>0;}).forEach(function(a){applyHeal(actor,a,ability,true);});
+  else if(ability.kind==='buffSelf') applyBuff(actor, actor, ability, false);
+  else if(ability.kind==='buffAll') allies.filter(function(a){return a.hp>0;}).forEach(function(a){applyBuff(actor,a,ability,true);});
+  else if(ability.kind==='debuff') applyDebuffKind(actor, foes, ability, targetUid);
+  else if(ability.kind==='shieldSelf') applyShield(actor, ability);
+  if(ability.selfHealPct){ actor.hp=Math.min(actor.maxHp, actor.hp+Math.round(actor.maxHp*ability.selfHealPct)); logMsg(actor.name+" récupère "+Math.round(actor.maxHp*ability.selfHealPct)+" PV.",'heal'); }
+  if(ability.twice && ability.kind==='attack'){ dealDamage(actor, foes.find(function(f){return f.uid===targetUid;}), ability, false); }
+}
+function applyDebuffKind(actor, foes, ability, targetUid){
+  var targets = ability.target==='all' ? foes.filter(function(f){return f.hp>0;}) : [foes.find(function(f){return f.uid===targetUid;})];
+  targets.forEach(function(t){
+    if(!t || t.hp<=0) return;
+    if(ability.power){ dealDamage(actor, t, ability, ability.target==='all'); }
+    else { if(ability.effect) applyEffect(actor,t,ability.effect,false); if(ability.effect2) applyEffect(actor,t,ability.effect2,false); logMsg(actor.name+" affecte "+t.name+" avec "+ability.name+".", 'info'); }
+  });
+}
+function targetableList(ability, side){
+  if(ability.target==='self') return [];
+  if(['heal','buffAlly'].includes(ability.kind)) return side.filter(function(u){return u.hp>0;});
+  if(['attack','debuff'].includes(ability.kind) && ability.target!=='all'){
+    if(ability.melee){
+      var front = side.filter(function(u){return u.hp>0 && u.row==='front';});
+      return front.length ? front : side.filter(function(u){return u.hp>0;});
+    }
+    return side.filter(function(u){return u.hp>0;});
+  }
+  return [];
+}
+function checkCombatEnd(){
+  var c = state.combat;
+  if(c.enemies.every(function(e){return e.hp<=0;})){ c.ended=true; c.result='victory'; return true; }
+  if(c.party.every(function(p){return p.hp<=0;})){ c.ended=true; c.result='defeat'; return true; }
+  return false;
+}
+function enemyChooseAndAct(enemy){
+  enemy.abilities.forEach(function(a){ if(a._cd>0) a._cd--; });
+  var specials = enemy.abilities.filter(function(a){return a.id!=='basic' && a._cd<=0;});
+  var chosen = (specials.length && Math.random()<0.65) ? specials[Math.floor(Math.random()*specials.length)] : enemy.abilities[0];
+  var targetUid=null;
+  if(['attack','debuff'].includes(chosen.kind) && chosen.target!=='all'){
+    var pool = targetableList(chosen, state.combat.party);
+    if(!pool.length) pool = state.combat.party.filter(function(p){return p.hp>0;});
+    if(!pool.length) return;
+    var t = chosen.target==='lowestHpAlly' ? pool.reduce(function(a,b){return b.hp/b.maxHp<a.hp/a.maxHp?b:a;}) : pool[Math.floor(Math.random()*pool.length)];
+    targetUid = t.uid;
+  } else if(chosen.kind==='heal' && chosen.target==='self'){ targetUid=enemy.uid; }
+  performAbility(enemy, chosen, targetUid);
+  if(chosen.id!=='basic') chosen._cd = chosen.cooldown;
+  if(enemy.boss && !enemy._enraged && enemy.hp>0 && enemy.hp<=enemy.maxHp*0.5){
+    enemy._enraged=true; enemy.atk=Math.round(enemy.atk*1.2); enemy.mag=Math.round(enemy.mag*1.2);
+    logMsg("⚠ "+enemy.name+" entre en fureur ! Ses attaques deviennent bien plus dangereuses.", 'info');
+  }
+}
+function startOfTurnUpkeep(u){
+  if(u.hp<=0) return false;
+  if(!u.isEnemy){
+    var owner = classFeatOwner(u.uid);
+    var regen = 1 + (owner && hasFeat(owner,'arcaneRecovery') ? 1 : 0);
+    u.focus = Math.min(u.focusMax, u.focus+regen);
+    if(owner && hasFeat(owner,'naturalRecovery')) u.hp=Math.min(u.maxHp, u.hp+Math.max(1,Math.round(u.maxHp*0.05)));
+    if(owner && hasFeat(owner,'secondWind') && !u.usedFeatFlags.secondWind && u.hp/u.maxHp<0.3){
+      u.hp=Math.min(u.maxHp, u.hp+Math.round(u.maxHp*0.2)); u.usedFeatFlags.secondWind=true; logMsg(u.name+" reprend son souffle et se soigne.",'heal');
+    }
+  }
+  var stunEff = u.tempEffects.find(function(e){return e.type==='stunActive';});
+  if(stunEff){
+    logMsg(u.name+" est étourdi et ne peut agir !", 'info');
+    u.tempEffects = u.tempEffects.filter(function(e){return e!==stunEff;});
+    return false;
+  }
+  return true;
+}
+function advanceQueueIndex(){
+  var c=state.combat; c.qIndex++;
+  if(c.qIndex>=c.queue.length){
+    c.party.concat(c.enemies).forEach(decayEffects);
+    newRound();
+  }
+}
+function runQueue(){
+  var c = state.combat;
+  var guard=0;
+  while(guard++<600){
+    if(checkCombatEnd()) { onCombatEnd(); return; }
+    var actor = currentActor();
+    if(!actor){ advanceQueueIndex(); continue; }
+    if(actor.hp<=0){ advanceQueueIndex(); continue; }
+    var canAct = startOfTurnUpkeep(actor);
+    if(!canAct){ advanceQueueIndex(); if(checkCombatEnd()){onCombatEnd();return;} continue; }
+    if(actor.isEnemy){
+      enemyChooseAndAct(actor);
+      if(checkCombatEnd()){ onCombatEnd(); return; }
+      advanceQueueIndex();
+      continue;
+    }
+    c.awaitingAbility=null; c.awaitingTarget=null;
+    render();
+    return;
+  }
+  render();
+}
+function submitAbilityChoice(abilityId){
+  var actor = currentActor(); if(!actor || actor.isEnemy) return;
+  var ability = actor.uid && CLASSES[actor.classId].abilities.find(function(a){return a.id===abilityId;});
+  if(!ability) return;
+  if(actor.focus<ability.cost) return;
+  var owner = classFeatOwner(actor.uid);
+  var free = owner && hasFeat(owner,'metamagic') && Math.random()<0.15;
+  var needsTarget = (['attack','heal','debuff'].includes(ability.kind) && ability.target!=='all' && ability.target!=='self');
+  if(needsTarget){
+    state.combat.awaitingAbility = ability; state.combat.awaitingTarget = true; state.combat._freeCast=free;
+    render(); return;
+  }
+  actor.focus -= free?0:ability.cost;
+  performAbility(actor, ability, null);
+  if(free) logMsg(actor.name+" lance le sort gratuitement (Métamagie) !", 'info');
+  if(checkCombatEnd()){ onCombatEnd(); return; }
+  advanceQueueIndex(); runQueue();
+}
+function submitTargetChoice(targetUid){
+  var actor = currentActor(); if(!actor) return;
+  var ability = state.combat.awaitingAbility; if(!ability) return;
+  var free = state.combat._freeCast;
+  actor.focus -= free?0:ability.cost;
+  performAbility(actor, ability, targetUid);
+  if(free) logMsg(actor.name+" lance le sort gratuitement (Métamagie) !", 'info');
+  state.combat.awaitingAbility=null; state.combat.awaitingTarget=null; state.combat._freeCast=false;
+  if(checkCombatEnd()){ onCombatEnd(); return; }
+  advanceQueueIndex(); runQueue();
+}
+function useConsumable(kind){
+  var actor = currentActor(); if(!actor || actor.isEnemy) return;
+  if(kind==='healPotion'){
+    if(!state.consumables.healPotion) return;
+    state.combat.awaitingAbility = {id:'_potion',name:'Potion de soin',kind:'heal',power:0,target:'ally',fixedHeal:true};
+    state.combat.awaitingTarget = true; state.combat._potionUse='healPotion';
+    render();
+  } else if(kind==='elixir'){
+    if(!state.consumables.elixir) return;
+    state.combat.awaitingAbility = {id:'_elixir',name:'Élixir de vigueur',kind:'heal',power:0,target:'ally',fixedHeal:true,cleanse:true};
+    state.combat.awaitingTarget = true; state.combat._potionUse='elixir';
+    render();
+  }
+}
+function submitPotionTarget(targetUid){
+  var actor = currentActor(); var kind = state.combat._potionUse;
+  var target = state.combat.party.find(function(p){return p.uid===targetUid;});
+  if(target && target.hp>0){
+    var amt = Math.round(target.maxHp*0.4);
+    target.hp = Math.min(target.maxHp, target.hp+amt);
+    logMsg(actor.name+" utilise "+(kind==='healPotion'?'une Potion de soin':'un Élixir de vigueur')+" sur "+target.name+" (+"+amt+" PV).", 'heal');
+    if(kind==='elixir'){ target.tempEffects = target.tempEffects.filter(function(e){return !['debuffAc','debuffAtk','debuffSpd','stunActive','weaken','markDamage'].includes(e.type);}); }
+    state.consumables[kind]--;
+  }
+  state.combat.awaitingAbility=null; state.combat.awaitingTarget=null; state.combat._potionUse=null;
+  if(checkCombatEnd()){ onCombatEnd(); return; }
+  advanceQueueIndex(); runQueue();
+}
+function onCombatEnd(){
+  var c = state.combat;
+  state.runBuffs = state.runBuffs.map(function(b){return Object.assign({},b,{combatsLeft:b.combatsLeft-1});}).filter(function(b){return b.combatsLeft>0;});
+  if(c.result==='defeat'){
+    state.view='END'; state.screen={outcome:'defeat', floor:c.node.layer};
+    if(c.node.layer > (state.meta.bestFloor||0)){ state.meta.bestFloor=c.node.layer; saveMeta(state.meta); }
+    clearSave(); render(); return;
+  }
+  c.party.forEach(function(p){ var u=state.roster[p.classId]; u.hp=p.hp; });
+  var goldGain = c.enemies.reduce(function(s,e){return s+e.gold;},0);
+  state.gold += goldGain;
+  var xpGain = c.enemies.reduce(function(s,e){return s+e.xp;},0);
+  var levelUps=[];
+  activeUnits(state).forEach(function(u){
+    u.xp += xpGain;
+    while(u.xp>=xpToNext(u.level)){
+      u.xp -= xpToNext(u.level); u.level++;
+      var opts = TALENT_POOL.slice().sort(function(){return Math.random()-0.5;}).slice(0,2);
+      levelUps.push({classId:u.classId, options:opts});
+    }
+  });
+  activeUnits(state).forEach(function(u){ var st=getStats(u,state); if(u.hp>st.hp) u.hp=st.hp; });
+  var lootRarityMin = c.node.type==='boss' ? 'epic' : (c.node.type==='elite' ? 'rare' : null);
+  var loot = [rollLootItem(lootRarityMin), rollLootItem(lootRarityMin), rollLootItem(lootRarityMin)];
+  state.combat = null;
+  state.view='REWARD';
+  state.screen = {goldGain:goldGain, xpGain:xpGain, levelUps:levelUps, levelUpIndex:0, loot:loot, lootTaken:false, node:c.node, isBoss:c.node.type==='boss'};
+  saveGame();
+  render();
+}
+
+/* ============================= VIEW: RENDER ROOT ============================= */
+function render(){
+  var app = document.getElementById('app');
+  var html = '';
+  if(state.view==='TITLE') html = renderTitle();
+  else if(state.view==='BUILD') html = renderBuild();
+  else {
+    html += renderTopbar();
+    if(state.view==='MAP') html += renderMap();
+    else if(state.view==='COMBAT') html += renderCombat();
+    else if(state.view==='REWARD') html += renderReward();
+    else if(state.view==='SHOP') html += renderShop();
+    else if(state.view==='EVENT') html += renderEvent();
+    else if(state.view==='CAMP') html += renderCamp();
+    else if(state.view==='END') html += renderEnd();
+  }
+  app.innerHTML = html;
+  var logEl = document.querySelector('.log-panel');
+  if(logEl) logEl.scrollTop = 0;
+}
+
+function renderTopbar(){
+  var au = activeUnits(state);
+  var cards = au.map(function(u){
+    var st = getStats(u,state);
+    var hpCur = u.hp==null?st.hp:u.hp;
+    var hpPct = Math.max(0,Math.min(100, Math.round(hpCur/st.hp*100)));
+    return '<div class="tb-card"><div class="tb-icon">'+CLASSES[u.classId].icon+'</div><div class="tb-body">'+
+      '<div class="tb-name">'+CLASSES[u.classId].name+' <span class="mono" style="color:var(--ink-faint)">Nv.'+u.level+'</span>'+(hpCur<=0?' <span class="tb-ko">K.O.</span>':'')+'</div>'+
+      '<div class="bar bar-hp'+(hpPct<35?' low':'')+'"><i style="width:'+hpPct+'%"></i></div>'+
+      '</div></div>';
+  }).join('');
+  return '<div class="topbar"><div class="topbar-inner">'+
+    '<div class="topbar-brand">🗝️ La Crypte aux Treize Voies</div>'+
+    '<div class="topbar-party">'+cards+'</div>'+
+    '<div class="topbar-meta"><span title="Or">🪙 '+state.gold+'</span><span title="Potions">🧪 '+(state.consumables.healPotion||0)+'</span><span title="Élixirs">⚗️ '+(state.consumables.elixir||0)+'</span></div>'+
+    '</div></div>';
+}
+
+/* ---- TITLE ---- */
+function renderTitle(){
+  var hasSave = !!loadGame();
+  var meta = loadMeta();
+  return '<div class="title-screen">'+
+    '<div class="title-emblem">🗝️🏰</div>'+
+    '<h1 class="title-h1">La Crypte aux <span>Treize Voies</span></h1>'+
+    '<p class="title-sub">Assemblez une compagnie de quatre héros parmi treize archétypes légendaires, plongez dans un donjon généré à chaque expédition, et forgez des synergies de classes, de sorts et de butins pour atteindre le cœur de la Crypte.</p>'+
+    '<div class="title-actions">'+
+      (hasSave ? '<button class="btn btn-primary" onclick="onContinueRun()">Reprendre l\'expédition</button>' : '')+
+      '<button class="btn'+(hasSave?' btn-ghost':' btn-primary')+'" onclick="onNewRun()">Nouvelle expédition</button>'+
+    '</div>'+
+    '<div class="title-meta">Meilleur étage atteint : '+ (meta.bestFloor||0) +' · Niveau Nouvelle Partie+ : '+(meta.ngPlus||0)+'</div>'+
+    '</div>';
+}
+function onContinueRun(){ var s=loadGame(); if(s){ state=s; render(); } }
+function onNewRun(){
+  var keepNgPlus = state ? state.ngPlus : loadMeta().ngPlus;
+  state = newState(); state.ngPlus = keepNgPlus||0; state.buildPicks=[]; state.view='BUILD'; render();
+}
+
+/* ---- BUILD ---- */
+function renderBuild(){
+  var picks = state.buildPicks;
+  var cards = CLASS_LIST.map(function(cid){
+    var c = CLASSES[cid];
+    var picked = picks.indexOf(cid)!==-1;
+    var disabled = !picked && picks.length>=4;
+    return '<div class="class-card'+(picked?' picked':'')+(disabled?' disabled':'')+'">'+
+      '<div class="cc-head"><div class="cc-icon">'+c.icon+'</div><div><div class="cc-name">'+c.name+'</div>'+
+      '<span class="pill tag-role" style="background:'+roleColor(c.role)+'">'+ROLE_NAMES[c.role]+'</span></div></div>'+
+      '<div class="cc-stats"><div><b>'+c.base.hp+'</b>PV</div><div><b>'+c.base.ac+'</b>CA</div><div><b>'+c.base.atk+'</b>ATT</div><div><b>'+c.base.mag+'</b>MAG</div><div><b>'+c.base.spd+'</b>VIT</div></div>'+
+      '<div class="cc-abilities">'+c.abilities.map(function(a){return '<div><span class="ab-name">'+a.name+'</span>'+(a.cost?' <span class="mono" style="color:var(--role-caster)">('+a.cost+')</span>':'')+' — '+a.desc+'</div>';}).join('')+'</div>'+
+      '<div class="cc-feat">✦ '+c.feat.name+' — '+c.feat.desc+'</div>'+
+      '<button class="btn cc-pick'+(picked?' btn-danger':'')+'" '+(disabled?'disabled':'')+' onclick="onToggleClass(\''+cid+'\')">'+(picked?'Retirer':'Choisir')+'</button>'+
+      '</div>';
+  }).join('');
+  var slots = [0,1,2,3].map(function(i){
+    var cid = picks[i];
+    if(!cid) return '<div class="roster-slot"><div class="rs-icon">?</div>Emplacement '+(i+1)+(i<2?' (avant)':' (arrière)')+'</div>';
+    var c = CLASSES[cid];
+    return '<div class="roster-slot filled"><div class="rs-icon">'+c.icon+'</div><b>'+c.name+'</b><span class="pill tag-role" style="background:'+roleColor(c.role)+'">'+ROLE_NAMES[c.role]+'</span></div>';
+  }).join('');
+  var syn = picks.length? computeRoleSynergy(picks.map(function(cid){return {classId:cid};})) : {lines:[]};
+  return '<div class="wrap">'+
+    '<div class="section-head"><div><h2>Composez votre compagnie</h2><p>Choisissez exactement 4 classes parmi les treize voies de la Crypte. Les deux premières formeront la ligne de front.</p></div>'+
+    '<button class="btn btn-primary" '+(picks.length===4?'':'disabled')+' onclick="onConfirmBuild()">Descendre dans le donjon →</button></div>'+
+    '<div class="roster-strip">'+slots+'</div>'+
+    (syn.lines.length? '<div class="synergy-box">'+syn.lines.map(function(l){return '<div class="synergy-line">✦ '+l+'</div>';}).join('')+'</div>':'')+
+    '<div class="class-grid" style="margin-top:20px;">'+cards+'</div>'+
+    '</div>';
+}
+function roleColor(role){ return 'var(--role-'+role+')'; }
+function onToggleClass(cid){
+  var i = state.buildPicks.indexOf(cid);
+  if(i!==-1) state.buildPicks.splice(i,1);
+  else if(state.buildPicks.length<4) state.buildPicks.push(cid);
+  render();
+}
+function onConfirmBuild(){
+  if(state.buildPicks.length!==4) return;
+  state.buildPicks.forEach(function(cid,i){ var u=makeUnit(cid,1); u.slot=i; state.roster[cid]=u; });
+  activeUnits(state).forEach(function(u){ u.hp = getStats(u,state).hp; });
+  state.mapNodes = genMap(); state.currentNodeId=null; state.floor=0;
+  state.view='MAP'; saveGame(); render();
+}
+
+/* ---- MAP ---- */
+function renderMap(){
+  var avail = availableNodeIds();
+  var m = state.mapNodes;
+  var layerW = 130, padX=50, padY=40;
+  var maxNodesInLayer = 0;
+  var byLayer = {};
+  m.nodes.forEach(function(n){ (byLayer[n.layer]=byLayer[n.layer]||[]).push(n); maxNodesInLayer=Math.max(maxNodesInLayer, byLayer[n.layer].length); });
+  var svgH = padY*2 + maxNodesInLayer*100;
+  var svgW = padX*2 + (m.layers-1)*layerW;
+  function pos(n){
+    var arr = byLayer[n.layer];
+    var y = padY + (arr.length===1 ? svgH/2-padY : n.idx*( (svgH-padY*2) / Math.max(1,arr.length-1) ));
+    var x = padX + n.layer*layerW;
+    return {x:x,y:y};
+  }
+  var lines='';
+  m.nodes.forEach(function(n){
+    var p1=pos(n);
+    n.connections.forEach(function(cid){
+      var p2=pos(m.byId[cid]);
+      var dim = state.currentNodeId===n.id ? '0.85' : (n.visited?'0.25':'0.15');
+      lines += '<line x1="'+p1.x+'" y1="'+p1.y+'" x2="'+p2.x+'" y2="'+p2.y+'" stroke="var(--border-strong)" stroke-width="2" opacity="'+dim+'"/>';
+    });
+  });
+  var nodesHtml = m.nodes.map(function(n){
+    var p = pos(n);
+    var isAvail = avail.indexOf(n.id)!==-1 && !n.visited;
+    var isCurrent = state.currentNodeId===n.id;
+    var cls='node-btn'+(isAvail?' available':'')+(n.visited?' visited':'')+(isCurrent?' current':'')+(n.type==='boss'?' boss':'')+((!isAvail&&!isCurrent)?' locked':'');
+    return '<div class="'+cls+'" style="left:'+p.x+'px;top:'+p.y+'px;" '+(isAvail?'onclick="onEnterNode(\''+n.id+'\')"':'')+' title="'+nodeTitle(n)+'">'+NODE_ICONS[n.type]+'<span class="nb-lvl">Étage '+(n.layer+1)+'</span></div>';
+  }).join('');
+  return '<div class="wrap">'+
+    '<div class="map-head"><h2>Carte de la Crypte</h2><div class="muted">Choisissez la salle suivante parmi les chemins accessibles.</div></div>'+
+    '<div class="scroller"><div class="map-svg-wrap" style="height:'+svgH+'px;min-height:260px;">'+
+    '<svg width="'+svgW+'" height="'+svgH+'" style="position:absolute;left:0;top:0;pointer-events:none;">'+lines+'</svg>'+
+    nodesHtml+
+    '</div></div>'+
+    '<div class="legend">'+Object.keys(NODE_ICONS).map(function(t){return '<span>'+NODE_ICONS[t]+' '+nodeTypeLabel(t)+'</span>';}).join('')+'</div>'+
+    renderSynergyPanel()+
+    '</div>';
+}
+function nodeTypeLabel(t){ return {combat:'Combat',elite:'Élite',merchant:'Marchand',event:'Évènement',camp:'Campement',boss:'Boss'}[t]; }
+function nodeTitle(n){ return nodeTypeLabel(n.type)+' — Étage '+(n.layer+1); }
+function renderSynergyPanel(){
+  var syn = computeRoleSynergy(activeUnits(state));
+  if(!syn.lines.length) return '';
+  return '<div class="panel" style="margin-top:16px;"><h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-dim);margin-bottom:8px;">Synergies actives</h3><div class="synergy-box">'+syn.lines.map(function(l){return '<div class="synergy-line">✦ '+l+'</div>';}).join('')+'</div></div>';
+}
+function onEnterNode(nodeId){
+  var node = state.mapNodes.byId[nodeId];
+  node.visited = true; state.currentNodeId = nodeId; state.floor = node.layer;
+  if(node.layer > (state.meta.bestFloor||0)){ state.meta.bestFloor = node.layer; saveMeta(state.meta); }
+  if(node.type==='combat' || node.type==='elite' || node.type==='boss'){
+    if(state.pendingAmbush){ state.pendingAmbush=false; }
+    state.view='COMBAT'; startCombat(node); saveGame(); return;
+  }
+  if(node.type==='merchant'){ state.view='SHOP'; state.screen={offers:[rollLootItem(),rollLootItem(),rollLootItem(),generateFillerItem('trinket','common')]}; }
+  else if(node.type==='event'){
+    var pool = EVENTS.filter(function(e){ return true; });
+    var ev = pool[Math.floor(Math.random()*pool.length)];
+    state.view='EVENT'; state.screen={event:ev, outcome:null};
+  } else if(node.type==='camp'){
+    activeUnits(state).forEach(function(u){ var st=getStats(u,state); var missing=st.hp-(u.hp==null?st.hp:u.hp); u.hp=Math.min(st.hp,(u.hp==null?st.hp:u.hp)+Math.round(missing*0.25)); });
+    state.view='CAMP'; state.screen={};
+  }
+  saveGame(); render();
+}
+function onBackToMap(){
+  if(state.pendingAmbush){
+    state.pendingAmbush=false;
+    var node = state.mapNodes.byId[state.currentNodeId];
+    state.view='COMBAT'; startCombat(Object.assign({},node,{type:'combat'})); saveGame(); render(); return;
+  }
+  state.view='MAP'; saveGame(); render();
+}
+
+/* ---- COMBAT VIEW ---- */
+function renderCombat(){
+  var c = state.combat;
+  var actor = currentActor();
+  var initHtml = c.queue.map(function(q,i){
+    var u = findCombatant(q.uid,q.isEnemy);
+    return '<div class="init-chip'+(i===c.qIndex?' now':'')+'" title="'+u.name+'">'+(u.isEnemy?u.icon:CLASSES[u.classId].icon)+'</div>';
+  }).join('');
+  function unitCard(u, selectable){
+    var pct = Math.max(0,Math.round(u.hp/u.maxHp*100));
+    var focusPct = u.focusMax? Math.round(u.focus/u.focusMax*100):0;
+    var effs = u.tempEffects.map(function(e){ return '<span class="eff '+(['buffAc','buffAtk','buffSpd','shield','buffAtkSelf','buffMagSelf','buffAtkFromMag'].indexOf(e.type)!==-1?'buff':'debuff')+'">'+effLabel(e)+'</span>';}).join('');
+    var isActing = actor && actor.uid===u.uid && u.hp>0;
+    return '<div class="unit-card'+(u.hp<=0?' dead':'')+(isActing?' acting':'')+(selectable?' selectable':'')+'" '+(selectable?'onclick="onSelectTarget(\''+u.uid+'\')"':'')+'>'+
+      '<div class="uc-icon">'+(u.isEnemy?u.icon:CLASSES[u.classId].icon)+'</div>'+
+      '<div class="uc-body"><div class="uc-top"><span>'+u.name+'</span>'+(u.level?'<span class="lvl">Nv.'+u.level+'</span>':'')+'</div>'+
+      '<div class="bar bar-hp'+(pct<35?' low':'')+'"><i style="width:'+pct+'%"></i></div>'+
+      (u.isEnemy?'':'<div class="bar bar-focus"><i style="width:'+focusPct+'%"></i></div>')+
+      (effs?'<div class="uc-effects">'+effs+'</div>':'')+
+      '</div></div>';
+  }
+  var choosingTarget = c.awaitingTarget && actor && !actor.isEnemy;
+  var sideForTarget = choosingTarget ? (['heal'].includes(c.awaitingAbility.kind) ? c.party : c.enemies) : null;
+  var partyHtml = c.party.map(function(u){ return unitCard(u, choosingTarget && sideForTarget===c.party); }).join('');
+  var enemyHtml = c.enemies.map(function(u){ return unitCard(u, choosingTarget && sideForTarget===c.enemies); }).join('');
+  var actionPanel = '';
+  if(actor && !actor.isEnemy && !c.ended){
+    if(c.awaitingAbility){
+      var pool = targetableList(c.awaitingAbility, sideForTarget);
+      actionPanel = '<div class="action-panel"><div class="ap-head"><b>'+CLASSES[actor.classId].name+'</b><span class="muted">Choisissez une cible pour '+c.awaitingAbility.name+'</span></div>'+
+        '<div class="target-row">'+pool.map(function(t){return '<button class="target-btn" onclick="onSelectTarget(\''+t.uid+'\')">'+t.name+'</button>';}).join('')+
+        '<button class="btn btn-ghost btn-sm" onclick="onCancelTarget()">Annuler</button></div></div>';
+    } else {
+      var abilities = CLASSES[actor.classId].abilities.map(function(a){
+        var can = actor.focus>=a.cost;
+        return '<button class="ability-btn" '+(can?'':'disabled')+' onclick="submitAbilityChoice(\''+a.id+'\')"><div class="ab-t"><span>'+a.name+'</span><span class="cost">'+(a.cost? a.cost+' foc.':'gratuit')+'</span></div><div class="ab-d">'+a.desc+'</div></button>';
+      }).join('');
+      actionPanel = '<div class="action-panel"><div class="ap-head"><b>Tour de '+CLASSES[actor.classId].name+'</b><span class="muted mono">Concentration '+actor.focus+'/'+actor.focusMax+'</span></div>'+
+        '<div class="ability-row">'+abilities+'</div>'+
+        '<div class="target-row">'+
+        '<button class="btn btn-sm" '+(state.consumables.healPotion?'':'disabled')+' onclick="useConsumable(\'healPotion\')">🧪 Potion de soin ('+(state.consumables.healPotion||0)+')</button>'+
+        '<button class="btn btn-sm" '+(state.consumables.elixir?'':'disabled')+' onclick="useConsumable(\'elixir\')">⚗️ Élixir ('+(state.consumables.elixir||0)+')</button>'+
+        '</div></div>';
+    }
+  } else if(!c.ended){
+    actionPanel = '<div class="action-panel"><span class="muted">Résolution des actions ennemies…</span></div>';
+  }
+  var logHtml = c.log.slice().reverse().map(function(l){return '<div class="log-line '+l.cls+'">'+l.text+'</div>';}).join('');
+  return '<div class="wrap">'+
+    '<div class="section-head"><h2>'+nodeTypeLabel(c.node.type)+' — Étage '+(c.node.layer+1)+'</h2><div class="muted">Round '+c.round+'</div></div>'+
+    '<div class="init-strip">'+initHtml+'</div>'+
+    '<div class="combat-shell">'+
+      '<div class="combat-side"><h3>Votre compagnie</h3>'+partyHtml+'</div>'+
+      '<div class="combat-side"><h3>Adversaires</h3>'+enemyHtml+'</div>'+
+    '</div>'+
+    actionPanel+
+    '<div class="log-panel">'+logHtml+'</div>'+
+    '</div>';
+}
+function effLabel(e){
+  var map={buffAc:'+CA',debuffAc:'-CA',buffAtk:'+ATT',debuffAtk:'-ATT',buffSpd:'+VIT',debuffSpd:'-VIT',stunActive:'Étourdi',shield:'Bouclier',weaken:'Affaibli',markDamage:'Marqué',debuffAcSelf:'-CA (soi)',buffAtkSelf:'+ATT (tourelle)',buffMagSelf:'+MAG (tourelle)',buffAtkFromMag:'Forme animale',dodge:'Esquive+'};
+  return map[e.type]||e.type;
+}
+function onSelectTarget(uid){
+  if(state.combat._potionUse) submitPotionTarget(uid);
+  else submitTargetChoice(uid);
+}
+function onCancelTarget(){ state.combat.awaitingAbility=null; state.combat.awaitingTarget=null; state.combat._potionUse=null; render(); }
+
+/* ---- REWARD ---- */
+function renderReward(){
+  var s = state.screen;
+  if(s.levelUps.length > s.levelUpIndex){
+    var lu = s.levelUps[s.levelUpIndex];
+    var cls = CLASSES[lu.classId];
+    return '<div class="wrap"><div class="panel"><h2>'+cls.icon+' '+cls.name+' monte de niveau !</h2><p class="muted">Choisissez un talent permanent.</p>'+
+      '<div class="talent-choice">'+lu.options.map(function(t){return '<div class="talent-card"><h4>'+t.name+'</h4><p>'+t.desc+'</p><button class="btn btn-primary btn-sm" onclick="onPickTalent(\''+lu.classId+'\',\''+t.id+'\')">Choisir</button></div>';}).join('')+
+      '</div></div></div>';
+  }
+  var lootHtml = s.lootTaken ? '<p class="muted">Butin récupéré. Prêt à poursuivre.</p>' : ('<div class="item-grid">'+s.loot.map(function(it,i){return itemCard(it, '<button class="btn btn-sm btn-primary" onclick="onTakeLoot('+i+')">Prendre</button>');}).join('')+'</div>'+
+    '<div style="margin-top:12px;"><button class="btn btn-ghost btn-sm" onclick="onSkipLoot()">Ignorer le butin (+15 or)</button></div>');
+  return '<div class="wrap"><div class="panel">'+
+    '<h2>'+(s.isBoss?'Victoire glorieuse !':'Salle nettoyée')+'</h2>'+
+    '<div class="stat-row"><div><b>+'+s.goldGain+'</b><span>Or</span></div><div><b>+'+s.xpGain+'</b><span>Expérience</span></div></div>'+
+    '<h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-dim);margin-bottom:10px;">Butin proposé</h3>'+
+    lootHtml+
+    '<div style="margin-top:18px;"><button class="btn btn-primary" '+(s.lootTaken?'':'disabled')+' onclick="onContinueFromReward()">Continuer</button></div>'+
+    '</div></div>';
+}
+function itemCard(it, actionsHtml){
+  var stats = Object.keys(it.base||{}).map(function(k){return '+'+ (k==='critBonus'?Math.round(it.base[k]*100)+'% crit': it.base[k]+' '+k.toUpperCase());}).join(', ');
+  return '<div class="item-card '+it.rarity+'"><div class="ic-head"><div><div class="ic-name">'+(it.icon||ITEM_ICONS[it.slot])+' '+it.name+'</div><div class="ic-rarity '+it.rarity+'">'+it.rarity+' · '+it.slot+'</div></div></div>'+
+    (stats?'<div class="ic-stats">'+stats+'</div>':'')+
+    (it.synText?'<div class="ic-syn">'+it.synText+'</div>':'')+
+    (actionsHtml||'')+
+    '</div>';
+}
+function onPickTalent(classId, talentId){
+  var u = state.roster[classId];
+  var t = TALENT_POOL.find(function(x){return x.id===talentId;});
+  u.talents.push(Object.assign({},t,{id:t.id+'_'+Date.now()}));
+  var st = getStats(u,state); if(u.hp!=null) u.hp = Math.min(st.hp, u.hp + (t.stat==='hp'?t.amount:0));
+  state.screen.levelUpIndex++;
+  saveGame(); render();
+}
+function onTakeLoot(idx){ state.inventory.push(state.screen.loot[idx]); state.screen.lootTaken=true; saveGame(); render(); }
+function onSkipLoot(){ state.gold+=15; state.screen.lootTaken=true; saveGame(); render(); }
+function onContinueFromReward(){
+  if(state.screen.isBoss){ state.view='END'; state.screen={outcome:'victory', floor:state.floor}; clearSave(); render(); return; }
+  state.view='MAP'; saveGame(); render();
+}
+
+/* ---- SHOP ---- */
+function renderShop(){
+  var s = state.screen;
+  var offers = s.offers.map(function(it,i){
+    var price = Math.round(it.value * (1+ (state.ngPlus||0)*0.1));
+    return itemCard(it, '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;"><span class="mono" style="color:var(--gold)">'+price+' 🪙</span><button class="btn btn-sm btn-primary" '+(state.gold>=price?'':'disabled')+' onclick="onBuyItem('+i+','+price+')">Acheter</button></div>');
+  }).join('');
+  var sellables = state.inventory.map(function(it,i){
+    var price = Math.round(it.value*0.4);
+    return itemCard(it, '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;"><span class="mono" style="color:var(--gold)">'+price+' 🪙</span><button class="btn btn-sm" onclick="onSellItem('+i+','+price+')">Vendre</button></div>');
+  }).join('');
+  return '<div class="wrap"><div class="panel"><div class="section-head"><h2>🛒 Le Marchand des Abysses</h2><button class="btn btn-sm" '+(state.gold>=8?'':'disabled')+' onclick="onRerollShop()">Rafraîchir l\'étal (8 🪙)</button></div>'+
+    '<div class="item-grid">'+offers+'</div>'+
+    '<div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">'+
+    '<button class="btn btn-sm" '+(state.gold>=15?'':'disabled')+' onclick="onBuyConsumable(\'healPotion\',15)">Acheter une Potion de soin (15 🪙)</button>'+
+    '<button class="btn btn-sm" '+(state.gold>=20?'':'disabled')+' onclick="onBuyConsumable(\'elixir\',20)">Acheter un Élixir de vigueur (20 🪙)</button>'+
+    '</div></div>'+
+    (state.inventory.length? '<div class="panel"><h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-dim);margin-bottom:10px;">Vendre depuis votre sac</h3><div class="item-grid">'+sellables+'</div></div>':'')+
+    '<button class="btn btn-primary" onclick="onBackToMap()">Continuer</button>'+
+    '</div>';
+}
+function onBuyItem(idx, price){
+  if(state.gold<price) return;
+  state.gold-=price; state.inventory.push(state.screen.offers[idx]); state.screen.offers.splice(idx,1);
+  state.screen.offers.push(generateFillerItem(['weapon','armor','trinket'][Math.floor(Math.random()*3)], rollRarity(0)));
+  saveGame(); render();
+}
+function onSellItem(idx, price){ state.gold+=price; state.inventory.splice(idx,1); saveGame(); render(); }
+function onRerollShop(){ if(state.gold<8) return; state.gold-=8; state.screen.offers=[rollLootItem(),rollLootItem(),rollLootItem(),generateFillerItem('trinket','common')]; saveGame(); render(); }
+function onBuyConsumable(kind,price){ if(state.gold<price) return; state.gold-=price; state.consumables[kind]=(state.consumables[kind]||0)+1; saveGame(); render(); }
+
+/* ---- EVENT ---- */
+function renderEvent(){
+  var s = state.screen;
+  if(s.outcome){
+    return '<div class="wrap"><div class="panel"><h2 class="event-title">'+s.event.title+'</h2><div class="outcome-box">'+s.outcome+'</div>'+
+      (state.pendingAmbush? '<button class="btn btn-danger" style="margin-top:16px;" onclick="onBackToMap()">Affronter l\'embuscade →</button>' : '<button class="btn btn-primary" style="margin-top:16px;" onclick="onBackToMap()">Continuer</button>')+
+      '</div></div>';
+  }
+  var opts = s.event.options.map(function(o,i){
+    var disabled = o.need && !o.need(state);
+    var costOk = !o.cost || state.gold>=o.cost;
+    return '<button class="opt-btn" '+((disabled||!costOk)?'disabled':'')+' onclick="onEventChoice('+i+')">'+o.label+(o.sub?'<small>'+o.sub+(o.cost?' · '+o.cost+' 🪙':'')+'</small>':(o.cost?'<small>'+o.cost+' 🪙</small>':''))+(disabled?'<small>Condition non remplie</small>':'')+'</button>';
+  }).join('');
+  return '<div class="wrap"><div class="panel"><h2 class="event-title">'+s.event.title+'</h2><p class="event-text">'+s.event.text+'</p>'+
+    '<div class="opt-list">'+opts+'</div></div></div>';
+}
+function onEventChoice(idx){
+  var s = state.screen; var opt = s.event.options[idx];
+  var msg = opt.run(state);
+  s.outcome = msg;
+  saveGame(); render();
+}
+
+/* ---- CAMP ---- */
+function renderCamp(){
+  var au = activeUnits(state);
+  var slotHtml = [0,1,2,3].map(function(slot){
+    var u = au.find(function(x){return x.slot===slot;});
+    var sel = state.screen.selSlot===slot;
+    if(!u) return '<div class="form-slot'+(sel?' sel':'')+'" onclick="onCampSelectSlot('+slot+')">Vide</div>';
+    var st = getStats(u,state);
+    return '<div class="form-slot'+(sel?' sel':'')+'" onclick="onCampSelectSlot('+slot+')"><div class="fs-icon">'+CLASSES[u.classId].icon+'</div><b>'+CLASSES[u.classId].name+'</b><small>'+(slot<2?'Avant':'Arrière')+' · Nv.'+u.level+'</small>'+
+      '<div class="mono" style="font-size:10px;color:var(--ink-dim);margin-top:2px;">'+(u.hp==null?st.hp:u.hp)+'/'+st.hp+' PV</div></div>';
+  }).join('');
+  var bench = benchUnits(state);
+  var benchHtml = bench.length ? '<div class="bench-row">'+bench.map(function(u){
+    return '<div class="form-slot" onclick="onCampSelectBench(\''+u.classId+'\')" style="min-width:120px;'+(state.screen.selBench===u.classId?'border-color:var(--accent);':'')+'"><div class="fs-icon">'+CLASSES[u.classId].icon+'</div><b>'+CLASSES[u.classId].name+'</b><small>Réserve · Nv.'+u.level+'</small></div>';
+  }).join('')+'</div>' : '<p class="muted">Aucun renfort en réserve pour l\'instant.</p>';
+  var equipHtml = au.map(function(u){
+    var st = getStats(u,state);
+    return '<div class="panel" style="padding:14px;"><b>'+CLASSES[u.classId].icon+' '+CLASSES[u.classId].name+'</b>'+
+      '<div class="cc-stats" style="margin:8px 0;"><div><b>'+st.hp+'</b>PV</div><div><b>'+st.ac+'</b>CA</div><div><b>'+st.atk+'</b>ATT</div><div><b>'+st.mag+'</b>MAG</div><div><b>'+st.spd+'</b>VIT</div></div>'+
+      ['weapon','armor','trinket'].map(function(slotName){
+        var it = u.equip[slotName];
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border);font-size:12.5px;">'+
+          '<span>'+ITEM_ICONS[slotName]+' '+(it?it.name:'— vide —')+'</span>'+
+          (it?'<button class="btn btn-sm btn-ghost" onclick="onUnequip(\''+u.classId+'\',\''+slotName+'\')">Retirer</button>':'')+
+          '</div>';
+      }).join('')+
+      '</div>';
+  }).join('');
+  var invHtml = state.inventory.length ? '<div class="item-grid">'+state.inventory.map(function(it,i){
+    return itemCard(it, '<div class="slot-picker">'+au.map(function(u){ return '<button class="btn btn-sm" onclick="onEquip('+i+',\''+u.classId+'\')">'+CLASSES[u.classId].icon+'</button>';}).join('')+'</div>');
+  }).join('')+'</div>' : '<p class="muted">Votre sac est vide.</p>';
+  return '<div class="wrap"><div class="panel"><h2>🏕️ Campement</h2><p class="muted">Un repos vous a déjà rendu 25% des PV manquants. Réorganisez vos rangs, changez votre équipement, ou faites entrer un renfort.</p>'+
+    '<h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-dim);margin:16px 0 8px;">Formation (cliquez deux emplacements pour les échanger)</h3>'+
+    '<div class="formation-grid">'+slotHtml+'</div>'+
+    '<h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-dim);margin:16px 0 8px;">Réserve (cliquez un renfort puis un emplacement)</h3>'+
+    benchHtml+
+    '</div>'+
+    '<div class="panel"><h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-dim);margin-bottom:10px;">Équipement de la compagnie</h3>'+equipHtml+'</div>'+
+    '<div class="panel"><h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-dim);margin-bottom:10px;">Sac ('+state.inventory.length+')</h3>'+invHtml+'</div>'+
+    renderSynergyPanel()+
+    '<button class="btn btn-primary" onclick="onBackToMap()">Continuer</button>'+
+    '</div>';
+}
+function onCampSelectSlot(slot){
+  var s = state.screen;
+  if(s.selBench){
+    var bu = state.roster[s.selBench];
+    var au = activeUnits(state);
+    var occupant = au.find(function(x){return x.slot===slot;});
+    if(occupant) occupant.slot=null;
+    bu.slot = slot;
+    s.selBench=null; saveGame(); render(); return;
+  }
+  if(s.selSlot==null){ s.selSlot=slot; render(); return; }
+  if(s.selSlot===slot){ s.selSlot=null; render(); return; }
+  var au2 = activeUnits(state);
+  var a = au2.find(function(x){return x.slot===s.selSlot;});
+  var b = au2.find(function(x){return x.slot===slot;});
+  if(a) a.slot=slot; if(b) b.slot=s.selSlot;
+  if(a && !b) a.slot=slot;
+  s.selSlot=null; saveGame(); render();
+}
+function onCampSelectBench(classId){ state.screen.selBench = (state.screen.selBench===classId)?null:classId; state.screen.selSlot=null; render(); }
+function onEquip(invIdx, classId){
+  var it = state.inventory[invIdx]; var u = state.roster[classId];
+  if(u.equip[it.slot]) state.inventory.push(u.equip[it.slot]);
+  u.equip[it.slot]=it; state.inventory.splice(invIdx,1);
+  saveGame(); render();
+}
+function onUnequip(classId, slotName){
+  var u = state.roster[classId];
+  if(u.equip[slotName]){ state.inventory.push(u.equip[slotName]); u.equip[slotName]=null; }
+  saveGame(); render();
+}
+
+/* ---- END ---- */
+function renderEnd(){
+  var s = state.screen;
+  var victory = s.outcome!=='defeat';
+  return '<div class="wrap"><div class="end-screen">'+
+    '<div class="big">'+(victory?'🏆':'💀')+'</div>'+
+    '<h1>'+(victory?'La Crypte est vaincue !':'Votre compagnie est tombée…')+'</h1>'+
+    '<p class="muted" style="margin-top:8px;">'+(victory?'La Vouivre de Cendre s\'effondre en cendres. Votre légende grandit.':'Vous avez atteint l\'étage '+(s.floor+1)+' avant de succomber.')+'</p>'+
+    '<div class="stat-row"><div><b>'+state.gold+'</b><span>Or amassé</span></div><div><b>'+Math.round(avgActiveLevel(state))+'</b><span>Niveau moyen</span></div><div><b>'+(state.meta.bestFloor||0)+'</b><span>Meilleur étage</span></div></div>'+
+    '<button class="btn btn-primary" onclick="onRestartAfterEnd('+(victory?'true':'false')+')">'+(victory?'Nouvelle expédition (NG+'+((state.ngPlus||0)+1)+')':'Nouvelle expédition')+'</button>'+
+    '</div></div>';
+}
+function onRestartAfterEnd(victory){
+  var meta = loadMeta();
+  if(victory){ meta.ngPlus=(meta.ngPlus||0)+1; saveMeta(meta); }
+  clearSave();
+  state = newState(); state.ngPlus = meta.ngPlus||0; state.buildPicks=[]; state.view='BUILD'; render();
+}
+
+/* ============================= INIT ============================= */
+(function init(){
+  var saved = loadGame();
+  state = saved || newState();
+  render();
+})();
+</script>
