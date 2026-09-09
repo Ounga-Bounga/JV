@@ -1,17 +1,13 @@
 {
-  "name": "ragdoll-battle-3d",
+  "name": "duel-de-larene",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Simulateur de bataille 3D avec IA ragdoll et camera libre, inspire de Totally Accurate Battle Simulator.",
+  "description": "Duel 1v1 au tour par tour dans une arene de donjon, avec tir/parade/rechargement et probabilites visibles.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
-  },
-  "dependencies": {
-    "cannon-es": "^0.20.0",
-    "three": "^0.169.0"
   },
   "devDependencies": {
     "vite": "^5.4.8"

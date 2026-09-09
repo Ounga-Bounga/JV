@@ -3,71 +3,118 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ragdoll Battle 3D</title>
+    <title>Duel de l'Arène</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <canvas id="scene"></canvas>
+    <div id="app">
+      <!-- ============ MENU ============ -->
+      <section id="screen-menu" class="screen">
+        <div class="stone-bg"></div>
+        <div class="menu-inner">
+          <h1 class="title">Duel de l'Arène</h1>
+          <p class="subtitle">Un affrontement de carreaux au fond du donjon — tir, parade, rechargement.</p>
 
-    <div id="ui">
-      <div id="panel">
-        <h1>Ragdoll Battle</h1>
-
-        <div class="row">
-          <label><span class="dot blue"></span>Equipe Bleue</label>
-          <input type="number" id="countBlue" min="1" max="16" value="5" />
-        </div>
-        <div class="row">
-          <label><span class="dot red"></span>Equipe Rouge</label>
-          <input type="number" id="countRed" min="1" max="16" value="5" />
-        </div>
-
-        <div class="row buttons">
-          <button id="btnStart">Lancer la bataille</button>
-          <button id="btnReset">Reinitialiser</button>
-        </div>
-
-        <div class="row">
-          <label>Vitesse</label>
-          <input type="range" id="timeScale" min="0" max="200" value="100" />
-        </div>
-      </div>
-
-      <div id="hud">
-        <div class="team-hud blue">
-          <div class="team-hud-top">
-            <span class="team-name">Bleu</span>
-            <span id="scoreBlue" class="team-count">5</span>
+          <div class="menu-panels">
+            <div class="fighter-card">
+              <div class="fighter-portrait-wrap small" id="menuPlayerPortrait"></div>
+              <h2>Vous</h2>
+              <div class="stat-list" id="playerStatList"></div>
+            </div>
+            <div class="vs-mark">VS</div>
+            <div class="fighter-card">
+              <div class="fighter-portrait-wrap small" id="menuEnemyPortrait"></div>
+              <h2 id="enemyName"></h2>
+              <p class="fighter-title" id="enemyTitle"></p>
+              <div class="stat-list" id="enemyStatList"></div>
+            </div>
           </div>
-          <div class="team-bar"><div id="hpBlue" class="team-bar-fill"></div></div>
-        </div>
-        <div class="team-hud red">
-          <div class="team-hud-top">
-            <span class="team-name">Rouge</span>
-            <span id="scoreRed" class="team-count">5</span>
+
+          <div class="rules-card">
+            <h3>Comment ça marche <span class="info-dot has-tooltip" id="rulesInfoDot">ⓘ</span></h3>
+            <div class="rules-triangle">
+              <div class="rule-chip has-tooltip" data-key="TIRER">🏹 Tirer</div>
+              <span class="rule-arrow">bat</span>
+              <div class="rule-chip has-tooltip" data-key="RECHARGER">🔄 Recharger</div>
+              <span class="rule-arrow">bat</span>
+              <div class="rule-chip has-tooltip" data-key="PARER">🛡️ Parer</div>
+              <span class="rule-arrow">bat</span>
+              <div class="rule-chip has-tooltip" data-key="TIRER">🏹 Tirer</div>
+            </div>
+            <p class="rules-hint">Survolez les stats, les actions et ce ⓘ pour voir le détail des calculs.</p>
           </div>
-          <div class="team-bar"><div id="hpRed" class="team-bar-fill"></div></div>
-        </div>
-      </div>
 
-      <div id="banner"></div>
-
-      <div id="help">
-        <button id="helpToggle">?</button>
-        <div id="helpBody">
-          <strong>Camera libre</strong>
-          <p>Clic gauche sur la scene : verrouille la souris</p>
-          <p>ZQSD / WASD : deplacement</p>
-          <p>Espace / Ctrl : monter / descendre</p>
-          <p>Maj : acceleration</p>
-          <p>Molette : vitesse de deplacement</p>
-          <p>Echap : liberer la souris</p>
+          <button id="btnStart" class="btn-primary">Entrer dans l'arène</button>
         </div>
-      </div>
+      </section>
+
+      <!-- ============ COMBAT ============ -->
+      <section id="screen-combat" class="screen hidden">
+        <div class="stone-bg"></div>
+        <div class="arena">
+          <div class="torch torch-left"><div class="flame"></div></div>
+          <div class="torch torch-right"><div class="flame"></div></div>
+
+          <div class="fighter-slot player-slot">
+            <div class="hud">
+              <div class="hud-top">
+                <span class="hud-name">Vous</span>
+                <span class="hp-text" id="playerHpText"></span>
+              </div>
+              <div class="hp-bar"><div class="hp-fill" id="playerHpFill"></div></div>
+              <div class="charge-row" id="playerChargeRow"></div>
+            </div>
+            <div class="fighter-portrait-wrap" id="playerPortrait"></div>
+          </div>
+
+          <div class="clash-center">
+            <div class="enemy-tell" id="enemyTell">L'adversaire a déjà choisi…</div>
+            <div class="timer-bar-wrap"><div class="timer-bar-fill" id="timerFill"></div></div>
+            <div class="combat-log" id="combatLog"></div>
+          </div>
+
+          <div class="fighter-slot enemy-slot">
+            <div class="hud">
+              <div class="hud-top">
+                <span class="hp-text" id="enemyHpText"></span>
+                <span class="hud-name" id="enemyHudName"></span>
+              </div>
+              <div class="hp-bar"><div class="hp-fill enemy" id="enemyHpFill"></div></div>
+              <div class="charge-row" id="enemyChargeRow"></div>
+            </div>
+            <div class="fighter-portrait-wrap" id="enemyPortrait"></div>
+          </div>
+        </div>
+
+        <div class="action-bar" id="actionBar">
+          <button class="action-btn has-tooltip" data-action="TIRER">
+            <span class="action-icon">🏹</span><span class="action-label">Tirer</span>
+            <span class="action-cost" id="costTirer"></span>
+          </button>
+          <button class="action-btn has-tooltip" data-action="PARER">
+            <span class="action-icon">🛡️</span><span class="action-label">Parer</span>
+          </button>
+          <button class="action-btn has-tooltip" data-action="RECHARGER">
+            <span class="action-icon">🔄</span><span class="action-label">Recharger</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ============ FIN ============ -->
+      <section id="screen-end" class="screen hidden">
+        <div class="stone-bg"></div>
+        <div class="menu-inner">
+          <h1 class="title" id="endTitle"></h1>
+          <p class="subtitle" id="endSubtitle"></p>
+          <button id="btnReplay" class="btn-primary">Rejouer</button>
+        </div>
+      </section>
     </div>
+
+    <div id="tooltip" class="tooltip hidden"></div>
 
     <script type="module" src="/src/main.js"></script>
   </body>

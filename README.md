@@ -1,6 +1,7 @@
-# Ragdoll Battle 3D
+# Duel de l'Arène
 
-Simulateur de bataille 3D avec des IA ragdoll qui s'affrontent, et une camera libre inspiree de *Totally Accurate Battle Simulator*.
+Duel 1 contre 1 au tour par tour, ambiance donjon : vous affrontez un garde-squelette
+à coups de carreaux d'arbalète, à grand renfort de bluff et de probabilités.
 
 ## Lancer le projet
 
@@ -9,24 +10,44 @@ npm install
 npm run dev
 ```
 
-Puis ouvrir l'URL affichee (par defaut http://localhost:5173).
+Puis ouvrir l'URL affichée (par défaut http://localhost:5173).
 
-## Commandes
+## Le principe
 
-- **Panneau (haut-gauche)** : nombre d'unites par equipe, bouton *Lancer la bataille*, *Reinitialiser*, curseur de vitesse de simulation.
-- **Camera libre** :
-  - Clic gauche sur la scene : verrouille la souris pour regarder autour
-  - `ZQSD` / `WASD` ou fleches : deplacement
-  - `Espace` / `Ctrl` : monter / descendre
-  - `Maj` : acceleration
-  - Molette : ajuste la vitesse de deplacement
-  - `Echap` : libere la souris
+Chaque round, l'adversaire choisit son action **en secret**. Vous avez ensuite
+quelques secondes pour choisir la vôtre — sans savoir ce qu'il a décidé — en
+voyant les probabilités exactes de chaque option calculées à partir de vos
+stats (survolez les boutons et les stats pour le détail). Les deux actions se
+révèlent ensuite en même temps et se résolvent.
 
-## Comment ca marche
+Trois actions, qui se contrent en triangle façon pierre-feuille-ciseaux :
 
-- **Physique** : [cannon-es](https://github.com/pmndrs/cannon-es), chaque combattant est un ragdoll articule (bassin, torse, tete, bras, jambes) relie par des liaisons a rotule.
-- **IA** : chaque unite cherche l'ennemi le plus proche, marche vers lui (cycle de marche procedural piloté par des controleurs PD sur les articulations) puis dechaine des coups de poing au contact. Les coups appliquent des degats et une impulsion de recul ; a 0 PV, l'unite devient un ragdoll totalement inerte.
-- **Rendu** : [three.js](https://threejs.org/).
+- **🏹 Tirer** (coûte 1 Charge) bat **🔄 Recharger** : un adversaire pris en
+  train de recharger est touché à coup sûr, avec des dégâts bonus.
+- **🛡️ Parer** (gratuit) bat **🏹 Tirer** : une parade a de bonnes chances de
+  bloquer totalement un tir.
+- **🔄 Recharger** (gratuit) bat **🛡️ Parer** : recharger contre une parade est
+  sûr et fait gagner de la Charge pendant que l'adversaire perd son tour.
+
+Les stats (Force, Précision, Vivacité, Vigueur) sont fixes pour cette V1 et
+pèsent directement sur les formules (dégâts, chance de toucher, chance de
+parer, chance de recharge critique) — visibles dans les tooltips.
+
+## Structure du code
+
+- `src/rules.js` — toute la logique de résolution (formules, RNG), pure et
+  indépendante du DOM.
+- `src/ai.js` — décision de l'adversaire.
+- `src/characters.js` — stats des combattants.
+- `src/portrait.js` — silhouettes SVG des duellistes.
+- `src/menu.js` / `src/duel.js` / `src/main.js` — écrans et mise en scène.
+- `src/tooltip.js` — moteur de tooltip générique au survol.
+
+## Prochaines pistes
+
+- Progression (or gagné, boutique d'équipement, plusieurs adversaires).
+- IA plus lisible/maline (lecture de patterns, bluff).
+- Plus d'actions et de profondeur stratégique autour de la Charge.
 
 ## Build de production
 
