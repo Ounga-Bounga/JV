@@ -1,20 +1,23 @@
 import * as CANNON from "cannon-es";
 import * as THREE from "three";
 
-const ATTACK_RANGE = 1.35;
-const ATTACK_DURATION = 0.45;
-const ATTACK_COOLDOWN = 0.9;
-const HIT_RADIUS = 0.5;
-const APPROACH_SPEED_TORQUE = 260;
-const MAX_WALK_SPEED = 3;
-const WALK_CYCLE_SPEED = 6.5;
-const LEG_SWING_AMP = 0.55;
-const KNEE_BEND_AMP = 0.9;
-const ARM_SWING_AMP = 0.5;
+const ATTACK_RANGE = 1.0;
+const ATTACK_DURATION = 0.4;
+const ATTACK_COOLDOWN = 0.55;
+const HIT_RADIUS = 0.55;
+const APPROACH_SPEED_TORQUE = 420;
+const MAX_WALK_SPEED = 4;
+const WALK_CYCLE_SPEED = 5.4;
+const LEG_SWING_AMP = 0.46;
+const KNEE_BEND_AMP = 0.75;
+const ARM_SWING_AMP = 0.42;
 const PUNCH_SHOULDER_AMP = 2.1;
 const PUNCH_ELBOW_AMP = 1.4;
-const SEPARATION_RADIUS = 0.9;
-const SEPARATION_FORCE = 12;
+const SEPARATION_RADIUS = 0.85;
+const SEPARATION_FORCE = 10;
+const TURN_RATE = 5.5; // rad/s, caps how fast a unit can re-face a new direction
+const MAX_CORRECTION_ANGLE = 1.4; // rad, caps single-tick PD torque spikes
+const MAX_ANGULAR_VELOCITY = 9; // rad/s, hard cap on controlled bones to stop wild spin jitter
 
 // ---- scratch objects reused every tick to avoid garbage collection churn ----
 const _fwd = new THREE.Vector3();
@@ -23,6 +26,7 @@ const _target = new THREE.Vector3();
 const _up = new THREE.Vector3(0, 1, 0);
 const _m4 = new THREE.Matrix4();
 const _tq = new THREE.Quaternion();
+const _rawYaw = new CANNON.Quaternion();
 const _yaw = new CANNON.Quaternion();
 const _pitch = new CANNON.Quaternion();
 const _limbTarget = new CANNON.Quaternion();
@@ -45,6 +49,36 @@ function yawQuatTowards(dx, dz, out) {
   return out;
 }
 
+/** Smoothly rotates `unit.facingYaw` toward the raw desired yaw, at most TURN_RATE rad/s. */
+function updateFacing(unit, dx, dz, dt, out) {
+  yawQuatTowards(dx, dz, _rawYaw);
+  const cur = unit.facingYaw;
+  cur.conjugate(_currentInv);
+  _rawYaw.mult(_currentInv, _err);
+  if (_err.w < 0) {
+    _err.x = -_err.x;
+    _err.y = -_err.y;
+    _err.z = -_err.z;
+    _err.w = -_err.w;
+  }
+  const w = Math.min(1, Math.max(-1, _err.w));
+  const angle = 2 * Math.acos(w);
+  const maxStep = TURN_RATE * dt;
+  if (angle > maxStep && angle > 1e-4) {
+    const t = maxStep / angle;
+    _pitch.x = _err.x * t;
+    _pitch.y = _err.y * t;
+    _pitch.z = _err.z * t;
+    _pitch.w = 1 - t + t * _err.w;
+    _pitch.normalize();
+    _pitch.mult(cur, out);
+  } else {
+    out.set(_rawYaw.x, _rawYaw.y, _rawYaw.z, _rawYaw.w);
+  }
+  unit.facingYaw.set(out.x, out.y, out.z, out.w);
+  return out;
+}
+
 /** PD controller driving `body` toward `targetQuat` (world space). */
 function applyPD(body, targetQuat, kp, kd, maxTorque) {
   body.quaternion.conjugate(_currentInv);
@@ -56,7 +90,7 @@ function applyPD(body, targetQuat, kp, kd, maxTorque) {
     _err.w = -_err.w;
   }
   const w = Math.min(1, Math.max(-1, _err.w));
-  const angle = 2 * Math.acos(w);
+  let angle = 2 * Math.acos(w);
   const s = Math.sqrt(1 - w * w);
   let ax = 0,
     ay = 0,
@@ -66,6 +100,7 @@ function applyPD(body, targetQuat, kp, kd, maxTorque) {
     ay = _err.y / s;
     az = _err.z / s;
   }
+  if (angle > MAX_CORRECTION_ANGLE) angle = MAX_CORRECTION_ANGLE;
   _torque.set(
     ax * angle * kp - body.angularVelocity.x * kd,
     ay * angle * kp - body.angularVelocity.y * kd,
@@ -76,6 +111,11 @@ function applyPD(body, targetQuat, kp, kd, maxTorque) {
   body.torque.x += _torque.x;
   body.torque.y += _torque.y;
   body.torque.z += _torque.z;
+
+  // Hard-limit residual spin from collisions/impacts so controlled bones never whip around.
+  const av = body.angularVelocity;
+  const avMag = av.length();
+  if (avMag > MAX_ANGULAR_VELOCITY) av.scale(MAX_ANGULAR_VELOCITY / avMag, av);
 }
 
 function limbQuat(yawQuat, theta, out) {
@@ -109,8 +149,9 @@ function triggerAttack(unit) {
   unit.attackSide = Math.random() < 0.5 ? 1 : -1;
 }
 
-function resolveHit(attacker, defender) {
-  defender.hp -= 15 + Math.random() * 18;
+function resolveHit(attacker, defender, onHit) {
+  const damage = 12 + Math.random() * 16;
+  defender.hp -= damage;
   const ap = attacker.getPosition();
   const dp = defender.getPosition();
   _diff.set(dp.x - ap.x, 0.4, dp.z - ap.z);
@@ -119,23 +160,32 @@ function resolveHit(attacker, defender) {
   const power = 3.2 + Math.random() * 1.6;
   defender.bodies.torso.applyImpulse(new CANNON.Vec3(_diff.x * power, power * 0.6, _diff.z * power));
   defender.bodies.head.applyImpulse(new CANNON.Vec3(_diff.x * power * 0.5, power * 0.3, _diff.z * power * 0.5));
+  defender.flashHit();
 
+  let knockedOut = false;
   if (defender.hp <= 0) {
     defender.hp = 0;
     defender.alive = false;
     defender.downed = true;
     defender.state = "down";
+    knockedOut = true;
+  }
+
+  if (onHit) {
+    const hp = defender.getHeadPosition();
+    onHit({ x: hp.x, y: hp.y, z: hp.z, amount: Math.round(damage), team: defender.team, knockedOut });
   }
 }
 
-export function updateAI(ragdolls, dt) {
-  // --- gentle separation between overlapping units so crowds don't pile up ---
+export function updateAI(ragdolls, dt, onHit) {
+  // --- gentle separation between overlapping teammates so crowds don't pile up ---
+  // (enemies are deliberately left free to close the distance and clash)
   for (let i = 0; i < ragdolls.length; i++) {
     const a = ragdolls[i];
     if (!a.alive) continue;
     for (let j = i + 1; j < ragdolls.length; j++) {
       const b = ragdolls[j];
-      if (!b.alive) continue;
+      if (!b.alive || b.team !== a.team) continue;
       const pa = a.getPosition();
       const pb = b.getPosition();
       const dx = pb.x - pa.x;
@@ -176,14 +226,14 @@ export function updateAI(ragdolls, dt) {
       if (unit.state === "attack") {
         unit.attackTimer += dt;
         const progress = unit.attackTimer / ATTACK_DURATION;
-        if (!unit.hitLanded && progress > 0.35 && progress < 0.75) {
+        if (!unit.hitLanded && progress > 0.3 && progress < 0.8) {
           const tag = unit.attackSide === 1 ? "R" : "L";
           const hand = unit.bodies[`lowerArm${tag}`].position;
           const dpx = target.bodies.torso.position.x - hand.x;
           const dpy = target.bodies.torso.position.y - hand.y;
           const dpz = target.bodies.torso.position.z - hand.z;
           if (dpx * dpx + dpy * dpy + dpz * dpz < HIT_RADIUS * HIT_RADIUS) {
-            resolveHit(unit, target);
+            resolveHit(unit, target, onHit);
             unit.hitLanded = true;
           }
         }
@@ -201,21 +251,22 @@ export function updateAI(ragdolls, dt) {
       unit.state = "idle";
     }
 
-    yawQuatTowards(dx, dz, _yaw);
+    updateFacing(unit, dx, dz, dt, _yaw);
 
     // Torso + pelvis: balance and face the target/movement direction.
-    applyPD(unit.bodies.pelvis, _yaw, 150, 20, 260);
-    applyPD(unit.bodies.torso, _yaw, 90, 14, 160);
-    applyPD(unit.bodies.head, _yaw, 20, 6, 40);
+    applyPD(unit.bodies.pelvis, _yaw, 175, 24, 260);
+    applyPD(unit.bodies.torso, _yaw, 105, 17, 170);
+    applyPD(unit.bodies.head, _yaw, 20, 7, 34);
 
-    if (unit.state === "approach") {
+    if (unit.state === "approach" || (unit.state === "idle" && dist > 0.7)) {
       unit.walkPhase += dt * WALK_CYCLE_SPEED;
       const nx = dx / (dist || 1);
       const nz = dz / (dist || 1);
       const vel = unit.bodies.pelvis.velocity;
       const forwardSpeed = vel.x * nx + vel.z * nz;
       if (forwardSpeed < MAX_WALK_SPEED) {
-        const pushForce = Math.min(dist, 1) * APPROACH_SPEED_TORQUE;
+        const scale = unit.state === "approach" ? 1 : 0.45;
+        const pushForce = Math.min(dist, 1) * APPROACH_SPEED_TORQUE * scale;
         unit.bodies.pelvis.force.x += nx * pushForce;
         unit.bodies.pelvis.force.z += nz * pushForce;
       }
@@ -230,10 +281,10 @@ export function updateAI(ragdolls, dt) {
       const kneeTheta = legAmp > 0 ? KNEE_BEND_AMP * Math.max(0, Math.sin(sidePhase)) : 0.15;
 
       limbQuat(_yaw, hipTheta, _limbTarget);
-      applyPD(unit.bodies[`upperLeg${tag}`], _limbTarget, 110, 14, 200);
+      applyPD(unit.bodies[`upperLeg${tag}`], _limbTarget, 120, 15, 210);
 
       limbQuat(_yaw, hipTheta * 0.4 + kneeTheta, _limbTarget);
-      applyPD(unit.bodies[`lowerLeg${tag}`], _limbTarget, 90, 12, 160);
+      applyPD(unit.bodies[`lowerLeg${tag}`], _limbTarget, 95, 13, 170);
 
       let armTheta = -ARM_SWING_AMP * Math.sin(sidePhase);
       let elbowTheta = 0.3;
@@ -246,9 +297,9 @@ export function updateAI(ragdolls, dt) {
       }
 
       limbQuat(_yaw, armTheta, _limbTarget);
-      applyPD(unit.bodies[`upperArm${tag}`], _limbTarget, 70, 10, 130);
+      applyPD(unit.bodies[`upperArm${tag}`], _limbTarget, 72, 11, 135);
       limbQuat(_yaw, armTheta * 0.5 + elbowTheta, _limbTarget);
-      applyPD(unit.bodies[`lowerArm${tag}`], _limbTarget, 55, 8, 100);
+      applyPD(unit.bodies[`lowerArm${tag}`], _limbTarget, 56, 9, 105);
     }
   }
 }

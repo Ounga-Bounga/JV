@@ -3,11 +3,14 @@ import { createPhysicsWorld, createScene } from "./world.js";
 import { createRagdoll } from "./ragdoll.js";
 import { updateAI } from "./ai.js";
 import { FreeCamera } from "./freeCamera.js";
+import { createBattleOverlay } from "./overlay.js";
 
 const canvas = document.getElementById("scene");
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 300);
@@ -16,12 +19,16 @@ freeCamera.setStartPose(new THREE.Vector3(0, 6, 22), 0, -0.18);
 
 const scene = createScene();
 const { world, ragdollMaterial } = createPhysicsWorld();
+const overlay = createBattleOverlay(document.getElementById("ui"));
+
+let viewportW = window.innerWidth;
+let viewportH = window.innerHeight;
 
 function resize() {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  renderer.setSize(w, h);
-  camera.aspect = w / h;
+  viewportW = window.innerWidth;
+  viewportH = window.innerHeight;
+  renderer.setSize(viewportW, viewportH);
+  camera.aspect = viewportW / viewportH;
   camera.updateProjectionMatrix();
 }
 window.addEventListener("resize", resize);
@@ -66,6 +73,7 @@ function clearBattle() {
   winnerDeclared = false;
   banner.classList.remove("show");
   banner.textContent = "";
+  overlay.clear();
 }
 
 function startBattle() {
@@ -77,6 +85,10 @@ function startBattle() {
   battleActive = true;
 }
 
+function onHit(hit) {
+  overlay.spawnDamage(hit, hit.amount, hit.knockedOut, camera, viewportW, viewportH);
+}
+
 const countBlueInput = document.getElementById("countBlue");
 const countRedInput = document.getElementById("countRed");
 const btnStart = document.getElementById("btnStart");
@@ -84,6 +96,8 @@ const btnReset = document.getElementById("btnReset");
 const timeScaleInput = document.getElementById("timeScale");
 const scoreBlueEl = document.getElementById("scoreBlue");
 const scoreRedEl = document.getElementById("scoreRed");
+const hpBlueEl = document.getElementById("hpBlue");
+const hpRedEl = document.getElementById("hpRed");
 const banner = document.getElementById("banner");
 const helpToggle = document.getElementById("helpToggle");
 const helpBody = document.getElementById("helpBody");
@@ -100,18 +114,39 @@ let accumulator = 0;
 let lastTime = performance.now();
 
 function updateHud() {
-  const aliveBlue = ragdolls.filter((r) => r.team === "blue" && r.alive).length;
-  const aliveRed = ragdolls.filter((r) => r.team === "red" && r.alive).length;
-  scoreBlueEl.textContent = `Bleu: ${aliveBlue}`;
-  scoreRedEl.textContent = `Rouge: ${aliveRed}`;
+  let aliveBlue = 0,
+    aliveRed = 0,
+    hpBlue = 0,
+    maxHpBlue = 0,
+    hpRed = 0,
+    maxHpRed = 0;
+
+  for (const r of ragdolls) {
+    if (r.team === "blue") {
+      if (r.alive) aliveBlue++;
+      hpBlue += r.hp;
+      maxHpBlue += r.maxHp;
+    } else {
+      if (r.alive) aliveRed++;
+      hpRed += r.hp;
+      maxHpRed += r.maxHp;
+    }
+  }
+
+  scoreBlueEl.textContent = aliveBlue;
+  scoreRedEl.textContent = aliveRed;
+  hpBlueEl.style.width = `${maxHpBlue ? (hpBlue / maxHpBlue) * 100 : 0}%`;
+  hpRedEl.style.width = `${maxHpRed ? (hpRed / maxHpRed) * 100 : 0}%`;
 
   if (battleActive && !winnerDeclared && ragdolls.length > 0) {
     const blueDone = aliveBlue === 0;
     const redDone = aliveRed === 0;
     if (blueDone || redDone) {
       winnerDeclared = true;
-      if (blueDone && redDone) banner.textContent = "Match nul !";
-      else if (redDone) {
+      if (blueDone && redDone) {
+        banner.textContent = "Match nul !";
+        banner.style.color = "#f0f6fc";
+      } else if (redDone) {
         banner.textContent = "Victoire Bleue !";
         banner.style.color = "#58a6ff";
       } else {
@@ -136,17 +171,20 @@ function animate() {
 
   let steps = 0;
   while (accumulator >= FIXED_DT && steps < MAX_STEPS_PER_FRAME) {
-    updateAI(ragdolls, FIXED_DT);
+    for (const r of ragdolls) r.savePrevTransform();
+    updateAI(ragdolls, FIXED_DT, onHit);
     world.step(FIXED_DT);
     accumulator -= FIXED_DT;
     steps++;
   }
   if (steps === MAX_STEPS_PER_FRAME) accumulator = 0;
 
-  for (const r of ragdolls) r.syncMeshes();
+  const alpha = Math.min(1, accumulator / FIXED_DT);
+  for (const r of ragdolls) r.syncMeshes(alpha, frameDt);
 
   freeCamera.update(frameDt);
   updateHud();
+  overlay.update(ragdolls, camera, viewportW, viewportH);
 
   renderer.render(scene, camera);
 }

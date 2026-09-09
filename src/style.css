@@ -35,14 +35,15 @@ body {
   position: absolute;
   top: 16px;
   left: 16px;
-  width: 220px;
-  background: rgba(13, 17, 23, 0.82);
+  width: 226px;
+  background: rgba(13, 17, 23, 0.86);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  padding: 14px;
+  border-radius: 14px;
+  padding: 16px;
   color: #e6edf3;
   pointer-events: auto;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
 #panel h1 {
@@ -69,7 +70,27 @@ body {
 }
 
 #panel label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   color: #9da7b1;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.dot.blue {
+  background: #58a6ff;
+  box-shadow: 0 0 6px #58a6ff99;
+}
+
+.dot.red {
+  background: #ff7b72;
+  box-shadow: 0 0 6px #ff7b7299;
 }
 
 #panel input[type="number"] {
@@ -94,21 +115,31 @@ button {
   font: inherit;
   cursor: pointer;
   border: none;
-  border-radius: 6px;
-  padding: 8px 10px;
+  border-radius: 8px;
+  padding: 9px 10px;
   font-size: 12px;
   font-weight: 600;
-  transition: filter 0.15s ease;
+  transition: filter 0.15s ease, transform 0.1s ease;
 }
 
 button:hover {
   filter: brightness(1.15);
 }
 
+button:active {
+  transform: scale(0.97);
+}
+
+button:focus-visible {
+  outline: 2px solid #58a6ff;
+  outline-offset: 2px;
+}
+
 #btnStart {
   flex: 1;
-  background: #238636;
+  background: linear-gradient(180deg, #2ea043, #238636);
   color: white;
+  box-shadow: 0 2px 8px rgba(35, 134, 54, 0.35);
 }
 
 #btnReset {
@@ -121,32 +152,131 @@ button:hover {
   top: 16px;
   right: 16px;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  width: 180px;
+}
+
+.team-hud {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(13, 17, 23, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+.team-hud-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.team-name {
+  font-family: "Bungee", "Segoe UI", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.team-count {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9da7b1;
+}
+
+.team-bar {
+  height: 6px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.team-bar-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 4px;
+  transition: width 0.25s ease;
+}
+
+.team-hud.blue .team-name {
+  color: #58a6ff;
+}
+
+.team-hud.blue .team-bar-fill {
+  background: linear-gradient(90deg, #2d7fd6, #58a6ff);
+}
+
+.team-hud.red .team-name {
+  color: #ff7b72;
+}
+
+.team-hud.red .team-bar-fill {
+  background: linear-gradient(90deg, #d63a2d, #ff7b72);
+}
+
+#hpbars {
+  position: absolute;
+  inset: 0;
   pointer-events: none;
 }
 
-.score {
-  min-width: 90px;
-  text-align: center;
-  padding: 9px 14px 7px;
-  border-radius: 8px;
+.hpbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 42px;
+  height: 6px;
+  margin-left: -21px;
+  border-radius: 4px;
+  background: rgba(13, 17, 23, 0.65);
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.hpbar-fill {
+  height: 100%;
+  width: 100%;
+  transition: width 0.15s ease;
+}
+
+.hpbar-fill.blue {
+  background: #58a6ff;
+}
+
+.hpbar-fill.red {
+  background: #ff7b72;
+}
+
+#fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.dmg {
+  position: absolute;
+  top: 0;
+  left: 0;
   font-family: "Bungee", "Segoe UI", sans-serif;
-  font-weight: 400;
-  font-size: 13px;
-  letter-spacing: 0.02em;
-  background: rgba(13, 17, 23, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  color: #ffd166;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  transition: transform 0.85s ease-out, opacity 0.85s ease-in;
 }
 
-.score.blue {
-  color: #58a6ff;
-  border-color: #1f6feb;
+.dmg.rise {
+  transform: translate(-50%, -95px);
+  opacity: 0;
 }
 
-.score.red {
-  color: #ff7b72;
-  border-color: #da3633;
+.dmg.ko {
+  color: #ff5b5b;
+  font-size: 18px;
 }
 
 #banner {

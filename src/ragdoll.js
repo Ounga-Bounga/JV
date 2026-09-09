@@ -2,6 +2,7 @@ import * as CANNON from "cannon-es";
 import * as THREE from "three";
 
 // Bone dimensions (half-extents in meters for boxes, radius for the head sphere).
+// These describe the PHYSICS shapes; visual meshes are capsules sized to match.
 const DIM = {
   pelvis: { half: [0.17, 0.1, 0.11], mass: 8 },
   torso: { half: [0.19, 0.23, 0.12], mass: 14 },
@@ -11,6 +12,7 @@ const DIM = {
   upperLeg: { half: [0.095, 0.2, 0.095], mass: 6 },
   lowerLeg: { half: [0.075, 0.2, 0.075], mass: 4.5 },
 };
+
 
 // Resting world-space heights (y) for the center of each bone, feet on the ground (y=0).
 const Y = {
@@ -35,20 +37,27 @@ function makeBody(mass, shape, position, material) {
   const body = new CANNON.Body({ mass, shape, material });
   body.position.set(position.x, position.y, position.z);
   body.linearDamping = 0.05;
-  body.angularDamping = 0.7;
+  body.angularDamping = 0.85;
   body.allowSleep = false;
   return body;
 }
 
 function makeMesh(geometry, color, castShadow = true) {
-  const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color, roughness: 0.7 }));
+  const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.05 });
+  const mesh = new THREE.Mesh(geometry, mat);
   mesh.castShadow = castShadow;
   mesh.receiveShadow = true;
   return mesh;
 }
 
-function boxGeo(half) {
-  return new THREE.BoxGeometry(half[0] * 2, half[1] * 2, half[2] * 2);
+// Visual meshes are capsules/spheres sized to roughly match the physics
+// box/sphere shapes: radius covers the x/z footprint, the cylindrical part
+// fills whatever height is left.
+function visualGeometry(isSphere, dim) {
+  if (isSphere) return new THREE.SphereGeometry(dim.radius, 20, 16);
+  const radius = (dim.half[0] + dim.half[2]) / 2;
+  const length = Math.max(0.03, dim.half[1] * 2 - radius * 2);
+  return new THREE.CapsuleGeometry(radius, length, 6, 12);
 }
 
 /**
@@ -59,6 +68,7 @@ function boxGeo(half) {
 export function createRagdoll(world, ragdollMaterial, scene, { x, z, team, color, skin = 0xe8b48c, id }) {
   const bodies = {};
   const meshes = {};
+  const baseColors = {};
   const constraints = [];
 
   const spawn = (name, dim, pos, isSphere = false) => {
@@ -66,12 +76,14 @@ export function createRagdoll(world, ragdollMaterial, scene, { x, z, team, color
     const body = makeBody(dim.mass, shape, pos, ragdollMaterial);
     world.addBody(body);
     bodies[name] = body;
+    body.prevPosition = body.position.clone();
+    body.prevQuaternion = new CANNON.Quaternion().copy(body.quaternion);
 
-    const geo = isSphere ? new THREE.SphereGeometry(dim.radius, 16, 12) : boxGeo(dim.half);
     const meshColor = name === "head" ? skin : color;
-    const mesh = makeMesh(geo, meshColor);
+    const mesh = makeMesh(visualGeometry(isSphere, dim), meshColor);
     scene.add(mesh);
     meshes[name] = mesh;
+    baseColors[name] = meshColor;
     return body;
   };
 
@@ -133,6 +145,11 @@ export function createRagdoll(world, ragdollMaterial, scene, { x, z, team, color
     );
   }
 
+  const _tmpColor = new THREE.Color();
+  const flashColor = new THREE.Color(0xffffff);
+  const _prevQ = new THREE.Quaternion();
+  const _curQ = new THREE.Quaternion();
+
   const ragdoll = {
     id,
     team,
@@ -151,25 +168,61 @@ export function createRagdoll(world, ragdollMaterial, scene, { x, z, team, color
     hitLanded: false,
     target: null,
     walkPhase: Math.random() * Math.PI * 2,
-    stumbleTimer: 0,
+    facingYaw: new CANNON.Quaternion().setFromAxisAngle(new CANNON.Vec3(0, 1, 0), team === "blue" ? Math.PI : 0),
+    flashTimer: 0,
 
-    syncMeshes() {
+    savePrevTransform() {
+      for (const name in bodies) {
+        const b = bodies[name];
+        b.prevPosition.copy(b.position);
+        b.prevQuaternion.copy(b.quaternion);
+      }
+    },
+
+    syncMeshes(alpha, frameDt = 1 / 60) {
       for (const name in bodies) {
         const b = bodies[name];
         const m = meshes[name];
-        m.position.copy(b.position);
-        m.quaternion.copy(b.quaternion);
+        m.position.set(
+          b.prevPosition.x + (b.position.x - b.prevPosition.x) * alpha,
+          b.prevPosition.y + (b.position.y - b.prevPosition.y) * alpha,
+          b.prevPosition.z + (b.position.z - b.prevPosition.z) * alpha,
+        );
+        _prevQ.set(b.prevQuaternion.x, b.prevQuaternion.y, b.prevQuaternion.z, b.prevQuaternion.w);
+        _curQ.set(b.quaternion.x, b.quaternion.y, b.quaternion.z, b.quaternion.w);
+        m.quaternion.slerpQuaternions(_prevQ, _curQ, alpha);
       }
+
+      if (this.flashTimer > 0) {
+        this.flashTimer -= frameDt;
+        const t = Math.max(0, this.flashTimer / 0.18);
+        for (const name of ["torso", "upperArmL", "upperArmR", "head"]) {
+          _tmpColor.set(baseColors[name]).lerp(flashColor, t * 0.85);
+          meshes[name].material.color.copy(_tmpColor);
+        }
+      }
+    },
+
+    flashHit() {
+      this.flashTimer = 0.18;
     },
 
     getPosition() {
       return bodies.pelvis.position;
     },
 
+    getHeadPosition() {
+      return bodies.head.position;
+    },
+
     dispose() {
       for (const c of constraints) world.removeConstraint(c);
       for (const name in bodies) world.removeBody(bodies[name]);
-      for (const name in meshes) scene.remove(meshes[name]);
+      for (const name in meshes) {
+        meshes[name].geometry.dispose();
+        meshes[name].material.dispose();
+        scene.remove(meshes[name]);
+      }
     },
   };
 

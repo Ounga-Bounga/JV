@@ -17,11 +17,11 @@
         <h1>Ragdoll Battle</h1>
 
         <div class="row">
-          <label>Equipe Bleue</label>
+          <label><span class="dot blue"></span>Equipe Bleue</label>
           <input type="number" id="countBlue" min="1" max="16" value="5" />
         </div>
         <div class="row">
-          <label>Equipe Rouge</label>
+          <label><span class="dot red"></span>Equipe Rouge</label>
           <input type="number" id="countRed" min="1" max="16" value="5" />
         </div>
 
@@ -37,8 +37,20 @@
       </div>
 
       <div id="hud">
-        <div id="scoreBlue" class="score blue">Bleu: 0</div>
-        <div id="scoreRed" class="score red">Rouge: 0</div>
+        <div class="team-hud blue">
+          <div class="team-hud-top">
+            <span class="team-name">Bleu</span>
+            <span id="scoreBlue" class="team-count">5</span>
+          </div>
+          <div class="team-bar"><div id="hpBlue" class="team-bar-fill"></div></div>
+        </div>
+        <div class="team-hud red">
+          <div class="team-hud-top">
+            <span class="team-name">Rouge</span>
+            <span id="scoreRed" class="team-count">5</span>
+          </div>
+          <div class="team-bar"><div id="hpRed" class="team-bar-fill"></div></div>
+        </div>
       </div>
 
       <div id="banner"></div>
